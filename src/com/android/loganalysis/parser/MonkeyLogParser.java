@@ -68,12 +68,16 @@ public class MonkeyLogParser implements IParser {
     private static final Pattern DROPPED_ROTATIONS = Pattern.compile(
             ":Dropped: .*rotations=(\\d+).*");
 
+    // Log messages can get intermixed in crash message, ignore those in the crash context.
+    private static final Pattern MONKEY_LOG_MESSAGE = Pattern.compile("$(:|Sleeping|    //)");
+
     private static final Pattern ANR = Pattern.compile(
             "// NOT RESPONDING: (\\S+) \\(pid (\\d+)\\)");
     private static final Pattern CRASH = Pattern.compile(
             "// CRASH: (\\S+) \\(pid (\\d+)\\)");
     private static final Pattern EMPTY_NATIVE_CRASH = Pattern.compile("" +
             "\\*\\* New native crash detected.");
+    private static final Pattern ABORTED = Pattern.compile("\\*\\* Monkey aborted due to error.");
 
     private static final Pattern TRACES_START = Pattern.compile("anr traces:");
     private static final Pattern TRACES_STOP = Pattern.compile("// anr traces status was \\d+");
@@ -131,7 +135,10 @@ public class MonkeyLogParser implements IParser {
                 AnrItem crash = new AnrParser().parse(mBlock);
                 addCrashAndReset(crash);
             } else {
-                mBlock.add(line);
+                m = MONKEY_LOG_MESSAGE.matcher(line);
+                if (!m.matches()) {
+                    mBlock.add(line);
+                }
                 return;
             }
         }
@@ -144,11 +151,8 @@ public class MonkeyLogParser implements IParser {
                     mMatchingJavaCrash = true;
                 }
             }
-            if (line.startsWith("// ") && !line.startsWith("// ** ")) {
-                line = line.replace("// ", "");
-                mBlock.add(line);
-                return;
-            } else {
+            m = ABORTED.matcher(line);
+            if (m.matches()) {
                 MiscLogcatItem crash = null;
                 if (mMatchingJavaCrash) {
                     crash = new JavaCrashParser().parse(mBlock);
@@ -156,6 +160,13 @@ public class MonkeyLogParser implements IParser {
                     crash = new NativeCrashParser().parse(mBlock);
                 }
                 addCrashAndReset(crash);
+            } else {
+                m = MONKEY_LOG_MESSAGE.matcher(line);
+                if (!m.matches() && line.startsWith("// ") && !line.startsWith("// ** ")) {
+                    line = line.replace("// ", "");
+                    mBlock.add(line);
+                }
+                return;
             }
         }
 
@@ -174,7 +185,11 @@ public class MonkeyLogParser implements IParser {
                 reset();
                 mMatchedTrace = true;
             } else {
-                mBlock.add(line);
+                m = MONKEY_LOG_MESSAGE.matcher(line);
+                if (!m.matches()) {
+                    mBlock.add(line);
+                }
+                return;
             }
         }
 

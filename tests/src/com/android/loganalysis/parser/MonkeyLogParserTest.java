@@ -280,6 +280,79 @@ public class MonkeyLogParserTest extends TestCase {
     }
 
     /**
+     * Test that a monkey can be parsed if there is a Java crash even if monkey lines are mixed in
+     * the crash.
+     */
+    public void testParse_java_crash_mixed() {
+        List<String> lines = Arrays.asList(
+                "# Tuesday, 04/24/2012 05:05:50 PM - device uptime = 232.65: Monkey command used for this test:",
+                "adb shell monkey -p com.google.android.apps.maps  -c android.intent.category.SAMPLE_CODE -c android.intent.category.CAR_DOCK -c android.intent.category.LAUNCHER -c android.intent.category.MONKEY -c android.intent.category.INFO  --ignore-security-exceptions --throttle 100  -s 501 -v -v -v 10000 ",
+                "",
+                ":Monkey: seed=501 count=10000",
+                ":AllowPackage: com.google.android.apps.maps",
+                ":IncludeCategory: android.intent.category.LAUNCHER",
+                ":Switch: #Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;launchFlags=0x10200000;component=com.google.android.apps.maps/com.google.android.maps.LatitudeActivity;end",
+                "    // Allowing start of Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.google.android.apps.maps/com.google.android.maps.LatitudeActivity } in package com.google.android.apps.maps",
+                "Sleeping for 100 milliseconds",
+                ":Sending Touch (ACTION_DOWN): 0:(332.0,70.0)",
+                ":Sending Touch (ACTION_UP): 0:(332.55292,76.54678)",
+                "    //[calendar_time:2012-04-25 00:06:38.419  system_uptime:280799]",
+                "    // Sending event #1600",
+                ":Sending Touch (ACTION_MOVE): 0:(1052.2666,677.64594)",
+                "// CRASH: com.google.android.apps.maps (pid 3161)",
+                "// Short Msg: java.lang.Exception",
+                ":Sending Touch (ACTION_UP): 0:(1054.7593,687.3757)",
+                "// Long Msg: java.lang.Exception: This is the message",
+                "// Build Label: google/yakju/maguro:JellyBean/JRN24B/338896:userdebug/dev-keys",
+                "// Build Changelist: 338896",
+                "Sleeping for 100 milliseconds",
+                "// Build Time: 1335309051000",
+                "// java.lang.Exception: This is the message",
+                "// \tat class.method1(Class.java:1)",
+                "// \tat class.method2(Class.java:2)",
+                "// \tat class.method3(Class.java:3)",
+                "// ",
+                "** Monkey aborted due to error.",
+                "Events injected: 1649",
+                ":Sending rotation degree=0, persist=false",
+                ":Dropped: keys=0 pointers=0 trackballs=0 flips=0 rotations=0",
+                "## Network stats: elapsed time=48897ms (0ms mobile, 48897ms wifi, 0ms not connected)",
+                "** System appears to have crashed at event 1649 of 10000 using seed 501",
+                "",
+                "# Tuesday, 04/24/2012 05:06:40 PM - device uptime = 282.53: Monkey command ran for: 00:49 (mm:ss)",
+                "",
+                "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+                "");
+
+        MonkeyLogItem monkeyLog = new MonkeyLogParser().parse(lines);
+        assertNotNull(monkeyLog);
+        // FIXME: Add test back once time situation has been worked out.
+        // assertEquals(parseTime("2012-04-24 17:05:50"), monkeyLog.getStartTime());
+        // assertEquals(parseTime("2012-04-24 17:06:40"), monkeyLog.getStopTime());
+        assertEquals(1, monkeyLog.getPackages().size());
+        assertTrue(monkeyLog.getPackages().contains("com.google.android.apps.maps"));
+        assertEquals(1, monkeyLog.getCategories().size());
+        assertTrue(monkeyLog.getCategories().contains("android.intent.category.LAUNCHER"));
+        assertEquals(100, monkeyLog.getThrottle());
+        assertEquals(501, monkeyLog.getSeed().intValue());
+        assertEquals(10000, monkeyLog.getTargetCount().intValue());
+        assertTrue(monkeyLog.getIgnoreSecurityExceptions());
+        assertEquals(49 * 1000, monkeyLog.getTotalDuration().longValue());
+        assertEquals(232650, monkeyLog.getStartUptimeDuration().longValue());
+        assertEquals(282530, monkeyLog.getStopUptimeDuration().longValue());
+        assertFalse(monkeyLog.getIsFinished());
+        assertFalse(monkeyLog.getNoActivities());
+        assertEquals(1600, monkeyLog.getIntermediateCount());
+        assertEquals(1649, monkeyLog.getFinalCount().intValue());
+        assertNotNull(monkeyLog.getCrash());
+        assertTrue(monkeyLog.getCrash() instanceof JavaCrashItem);
+        assertEquals("com.google.android.apps.maps", monkeyLog.getCrash().getApp());
+        assertEquals(3161, monkeyLog.getCrash().getPid().intValue());
+        assertEquals("java.lang.Exception", ((JavaCrashItem) monkeyLog.getCrash()).getException());
+    }
+
+
+    /**
      * Test that a monkey can be parsed if there is a native crash.
      */
     public void testParse_native_crash() {

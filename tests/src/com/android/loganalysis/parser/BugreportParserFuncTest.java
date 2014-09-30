@@ -77,6 +77,8 @@ public class BugreportParserFuncTest extends TestCase {
         assertNotNull(bugreport.getSystemLog().getStartTime());
         assertNotNull(bugreport.getSystemLog().getStopTime());
 
+        assertNotNull(bugreport.getLastKmsg());
+
         System.out.println(String.format("Stats for bugreport:\n" +
                 "  Time: %s\n" +
                 "  System Properties: %d items\n" +
@@ -85,7 +87,8 @@ public class BugreportParserFuncTest extends TestCase {
                 "  System Log:\n" +
                 "    Start time: %s\n" +
                 "    Stop time: %s\n" +
-                "    %d ANR(s), %d Java Crash(es), %d Native Crash(es)",
+                "    %d ANR(s), %d Java Crash(es), %d Native Crash(es)\n" +
+                "    %d Kernel Reset(s), %d Kernel Error(s)",
                 bugreport.getTime(),
                 bugreport.getSystemProps().size(),
                 bugreport.getMemInfo().size(),
@@ -94,7 +97,9 @@ public class BugreportParserFuncTest extends TestCase {
                 bugreport.getSystemLog().getStopTime().toString(),
                 bugreport.getSystemLog().getAnrs().size(),
                 bugreport.getSystemLog().getJavaCrashes().size(),
-                bugreport.getSystemLog().getNativeCrashes().size()));
+                bugreport.getSystemLog().getNativeCrashes().size(),
+                bugreport.getLastKmsg().getMiscEvents(KernelLogParser.KERNEL_RESET).size(),
+                bugreport.getLastKmsg().getMiscEvents(KernelLogParser.KERNEL_ERROR).size()));
     }
 }
 

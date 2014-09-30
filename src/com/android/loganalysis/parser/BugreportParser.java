@@ -69,7 +69,7 @@ public class BugreportParser extends AbstractSectionParser {
      * Matches: Command line: key=value key=value
      */
     private static final Pattern COMMAND_LINE = Pattern.compile(
-            "Command line:((\\s+[^\\s=]+=[^\\s]*)*)\\s*");
+            "Command line: (.*)");
 
     private IParser mBugreportParser = new IParser() {
         @Override
@@ -87,11 +87,14 @@ public class BugreportParser extends AbstractSectionParser {
                 if (m.matches()) {
                     String argString = m.group(1).trim();
                     if (!argString.isEmpty()) {
-                        String[] pairs = argString.split("\\s+");
-                        for (String pair : pairs) {
-                            System.out.println(pair);
-                            String[] keyValue = pair.split("=", 2);
-                            mCommandLine.put(keyValue[0], keyValue[1]);
+                        String[] args = argString.split("\\s+");
+                        for (String arg : args) {
+                            String[] keyValue = arg.split("=", 2);
+                            if (keyValue.length == 2) {
+                                mCommandLine.put(keyValue[0], keyValue[1]);
+                            } else {
+                                mCommandLine.put(keyValue[0], null);
+                            }
                         }
                     }
                 }

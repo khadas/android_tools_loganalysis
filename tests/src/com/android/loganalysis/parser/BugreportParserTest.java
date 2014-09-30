@@ -208,9 +208,12 @@ public class BugreportParserTest extends TestCase {
         assertEquals("value=withequals", bugreport.getCommandLine().get("key1"));
         assertEquals("", bugreport.getCommandLine().get("key2"));
 
-        lines = Arrays.asList("Command line:   key1=value=withequals  key2=  key3");
+        lines = Arrays.asList("Command line: key1=value1 nonkey key2=");
         bugreport = new BugreportParser().parse(lines);
-        assertTrue(bugreport.getCommandLine().isEmpty());
+        assertEquals(3, bugreport.getCommandLine().size());
+        assertEquals("value1", bugreport.getCommandLine().get("key1"));
+        assertEquals("", bugreport.getCommandLine().get("key2"));
+        assertNull(bugreport.getCommandLine().get("nonkey"));
     }
 
     /**

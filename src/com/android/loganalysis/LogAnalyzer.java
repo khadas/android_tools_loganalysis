@@ -102,7 +102,7 @@ public class LogAnalyzer {
             }
 
             if (mMonkeyLogPath != null) {
-                reader = getBufferedReader(mKernelLogPath);
+                reader = getBufferedReader(mMonkeyLogPath);
                 MonkeyLogItem monkeyLog = new MonkeyLogParser().parse(reader);
                 printMonkeyLog(monkeyLog);
                 return;

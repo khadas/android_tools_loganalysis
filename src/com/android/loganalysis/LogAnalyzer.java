@@ -19,9 +19,11 @@ import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.IItem;
 import com.android.loganalysis.item.KernelLogItem;
 import com.android.loganalysis.item.LogcatItem;
+import com.android.loganalysis.item.MonkeyLogItem;
 import com.android.loganalysis.parser.BugreportParser;
 import com.android.loganalysis.parser.KernelLogParser;
 import com.android.loganalysis.parser.LogcatParser;
+import com.android.loganalysis.parser.MonkeyLogParser;
 import com.android.loganalysis.util.config.ArgsOptionParser;
 import com.android.loganalysis.util.config.ConfigurationException;
 import com.android.loganalysis.util.config.Option;
@@ -53,6 +55,9 @@ public class LogAnalyzer {
 
     @Option(name="kernel-log", description="The path to the kernel log")
     private String mKernelLogPath = null;
+
+    @Option(name="monkey-log", description="The path to the monkey log")
+    private String mMonkeyLogPath = null;
 
     @Option(name="output", description="The output format, currently only JSON")
     private OutputFormat mOutputFormat = OutputFormat.JSON;
@@ -95,6 +100,13 @@ public class LogAnalyzer {
                 printKernelLog(kernelLog);
                 return;
             }
+
+            if (mMonkeyLogPath != null) {
+                reader = getBufferedReader(mKernelLogPath);
+                MonkeyLogItem monkeyLog = new MonkeyLogParser().parse(reader);
+                printMonkeyLog(monkeyLog);
+                return;
+            }
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {
@@ -135,6 +147,16 @@ public class LogAnalyzer {
             printJson(kernelLog);
         }
         // TODO: Print kernel log in human readable form.
+    }
+
+    /**
+     * Print the monkey log to stdout.
+     */
+    private void printMonkeyLog(MonkeyLogItem monkeyLog) {
+        if (OutputFormat.JSON.equals(mOutputFormat)) {
+            printJson(monkeyLog);
+        }
+        // TODO: Print monkey log in human readable form.
     }
 
     /**
@@ -190,6 +212,7 @@ public class LogAnalyzer {
         if (mBugreportPath != null) logCount++;
         if (mLogcatPath != null) logCount++;
         if (mKernelLogPath != null) logCount++;
+        if (mMonkeyLogPath != null) logCount++;
         return (logCount == 1);
     }
 
@@ -197,7 +220,8 @@ public class LogAnalyzer {
      * Print the usage for the command.
      */
     private void printUsage() {
-        System.err.println("Usage: loganalysis [--bugreport FILE|--logcat FILE|--kernel-log FILE]");
+        System.err.println("Usage: loganalysis [--bugreport FILE | --logcat FILE | " +
+                "--kernel-log FILE | --monkey-log FILE]");
     }
 
     /**

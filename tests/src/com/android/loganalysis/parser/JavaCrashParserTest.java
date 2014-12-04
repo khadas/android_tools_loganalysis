@@ -124,4 +124,28 @@ public class JavaCrashParserTest extends TestCase {
         assertEquals("This is the message", jc.getMessage());
         assertEquals(ArrayUtil.join("\n", lines.subList(0, lines.size()-2)), jc.getStack());
     }
+
+    /**
+     * Tests that only parts between the markers are parsed.
+     */
+    public void testParse_begin_end_markers() {
+        List<String> lines = Arrays.asList(
+                "error: this message has begin and end",
+                "----- begin exception -----",
+                "java.lang.Exception: This message",
+                "is many lines",
+                "long.",
+                "\tat class.method1(Class.java:1)",
+                "\tat class.method2(Class.java:2)",
+                "\tat class.method3(Class.java:3)",
+                "----- end exception -----");
+
+        JavaCrashItem jc = new JavaCrashParser().parse(lines);
+        assertNotNull(jc);
+        assertEquals("java.lang.Exception", jc.getException());
+        assertEquals("This message\nis many lines\nlong.", jc.getMessage());
+        assertNotNull(jc.getStack());
+        assertFalse(jc.getStack().contains("begin exception"));
+        assertFalse(jc.getStack().contains("end exception"));
+    }
 }

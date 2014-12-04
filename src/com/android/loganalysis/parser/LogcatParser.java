@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -127,10 +128,14 @@ public class LogcatParser implements IParser {
 
     private Map<Integer, String> mPids = new HashMap<Integer, String>();
 
+    private List<JavaCrashTag> mJavaCrashTags = new ArrayList<JavaCrashTag>();
+
     /**
      * Constructor for {@link LogcatParser}.
      */
     public LogcatParser() {
+        // Add default tag for java crash
+        addJavaCrashTag("E", "AndroidRuntime", LogcatParser.JAVA_CRASH);
         initPatterns();
     }
 
@@ -284,7 +289,7 @@ public class LogcatParser implements IParser {
         }
 
         // PID and TID are enough to separate Java crashes.
-        if (("E".equals(level) && "AndroidRuntime".equals(tag))) {
+        if (anyJavaCrashTagMatches(level, tag)) {
             String key = encodeLine(pid, tid, level, tag);
             LogcatData data;
             if (!mDataMap.containsKey(key)) {
@@ -321,7 +326,7 @@ public class LogcatParser implements IParser {
             MiscLogcatItem item = null;
             if ("E".equals(data.mLevel) && "ActivityManager".equals(data.mTag)) {
                 item = new AnrParser().parse(data.mLines);
-            } else if ("E".equals(data.mLevel) && "AndroidRuntime".equals(data.mTag)) {
+            } else if (anyJavaCrashTagMatches(data.mLevel, data.mTag)) {
                 // Get the process name/PID from the Java crash, then pass the rest of the lines to
                 // the parser.
                 Integer pid = null;
@@ -349,6 +354,7 @@ public class LogcatParser implements IParser {
                 if (item != null) {
                     item.setApp(app);
                     item.setPid(pid);
+                    item.setCategory(getCategory(data.mLevel, data.mTag));
                 }
             } else if ("I".equals(data.mLevel) && "DEBUG".equals(data.mTag)) {
                 // CLog.v("Parsing native crash: %s", data.mLines);
@@ -479,6 +485,85 @@ public class LogcatParser implements IParser {
                 }
             }
             return false;
+        }
+    }
+
+    /**
+     * Allows Java crashes to be picked up from different parts of logcat. Normally the crashes
+     * are error level messages from AndroidRuntime, but they could also be from other sources.
+     * Use this method to parse java crashes from those other sources.
+     *
+     * @param level log level on which to look for java crashes
+     * @param tag log tag where to look for java crashes
+     */
+    public void addJavaCrashTag(String level, String tag, String category) {
+        mJavaCrashTags.add(new JavaCrashTag(level, tag, category));
+    }
+
+    /**
+     * Determines if any of the java crash tags is matching a logcat line.
+     *
+     * @param level log level of the logcat line
+     * @param tag tag of the logcat line
+     * @return True if any java crash tag matches the current level and tag. False otherwise.
+     */
+    private boolean anyJavaCrashTagMatches(String level, String tag) {
+        return findCrashTag(level, tag) != null;
+    }
+
+    /**
+     * Finds JavaCrashTag matching given level and tag.
+     *
+     * @param level level to find
+     * @param tag tag to find
+     * @return matching JavaCrashTag or null if no matches exist.
+     */
+    private JavaCrashTag findCrashTag(String level, String tag) {
+        for (JavaCrashTag t : mJavaCrashTags) {
+            if (t.matches(level, tag)) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns category for a given JavaCrashTag.
+     *
+     * @param level level of the JavaCrashTag
+     * @param tag tag of the JavaCrashTag
+     * @return category of the JavaCrashTag, matching search criteria. If nothing was found
+     * returns default value for the standard java crash.
+     */
+    private String getCategory(String level, String tag) {
+        JavaCrashTag jct = findCrashTag(level, tag);
+        if (jct == null) {
+            return LogcatParser.JAVA_CRASH;
+        } else {
+            return jct.getCategory();
+        }
+    }
+
+    /**
+     * Class to encapsulate the tags that indicate which java crashes should be parsed.
+     */
+    private class JavaCrashTag {
+        private String mLevel;
+        private String mTag;
+        private String mCategory;
+
+        public JavaCrashTag(String level, String tag, String category) {
+            mLevel = level;
+            mTag = tag;
+            mCategory = category;
+        }
+
+        public boolean matches(String level, String tag) {
+            return mLevel.equals(level) && mTag.equals(tag);
+        }
+
+        public String getCategory() {
+            return mCategory;
         }
     }
 }

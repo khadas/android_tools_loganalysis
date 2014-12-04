@@ -106,6 +106,86 @@ public class LogcatParserTest extends TestCase {
                 logcat.getJavaCrashes().get(0).getEventTime());
     }
 
+    public void testParse_test_exception() throws ParseException {
+        List<String> lines = Arrays.asList(
+                "11-25 19:26:53.581  5832  7008 I TestRunner: ----- begin exception -----",
+                "11-25 19:26:53.589  5832  7008 I TestRunner: ",
+                "11-25 19:26:53.589  5832  7008 I TestRunner: java.util.concurrent.TimeoutException",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.support.test.uiautomator.WaitMixin.wait(WaitMixin.java:49)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.support.test.uiautomator.WaitMixin.wait(WaitMixin.java:36)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.support.test.uiautomator.UiDevice.wait(UiDevice.java:169)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at com.android.test.uiautomator.common.helpers.MapsHelper.doSearch(MapsHelper.java:87)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at com.android.test.uiautomator.aupt.MapsTest.testMaps(MapsTest.java:58)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at java.lang.reflect.Method.invoke(Native Method)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at java.lang.reflect.Method.invoke(Method.java:372)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.test.InstrumentationTestCase.runMethod(InstrumentationTestCase.java:214)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.test.InstrumentationTestCase.runTest(InstrumentationTestCase.java:199)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at junit.framework.TestCase.runBare(TestCase.java:134)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at junit.framework.TestResult$1.protect(TestResult.java:115)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at junit.framework.TestResult.runProtected(TestResult.java:133)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at junit.framework.TestResult.run(TestResult.java:118)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at junit.framework.TestCase.run(TestCase.java:124)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.support.test.aupt.AuptTestRunner$AuptPrivateTestRunner.runTest(AuptTestRunner.java:182)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.test.AndroidTestRunner.runTest(AndroidTestRunner.java:176)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.test.InstrumentationTestRunner.onStart(InstrumentationTestRunner.java:555)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner:    at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:1848)",
+                "11-25 19:26:53.589  5832  7008 I TestRunner: ----- end exception -----"
+                );
+
+        LogcatParser logcatParser = new LogcatParser("2012");
+        logcatParser.addJavaCrashTag("I", "TestRunner", LogcatParser.JAVA_CRASH);
+        LogcatItem logcat = logcatParser.parse(lines);
+        assertNotNull(logcat);
+        assertEquals(1, logcat.getEvents().size());
+        assertEquals(1, logcat.getJavaCrashes().size());
+        assertEquals(5832, logcat.getJavaCrashes().get(0).getPid().intValue());
+        assertEquals(7008, logcat.getJavaCrashes().get(0).getTid().intValue());
+        assertEquals("", logcat.getJavaCrashes().get(0).getLastPreamble());
+        assertEquals("", logcat.getJavaCrashes().get(0).getProcessPreamble());
+        assertEquals(LogcatParser.JAVA_CRASH, logcat.getJavaCrashes().get(0).getCategory());
+    }
+
+    public void testParse_test_exception_with_exras() throws ParseException {
+        List<String> lines = Arrays.asList(
+                "12-06 17:19:18.746  6598  7960 I TestRunner: failed: testYouTube(com.android.test.uiautomator.aupt.YouTubeTest)",
+                "12-06 17:19:18.746  6598  7960 I TestRunner: ----- begin exception -----",
+                "12-06 17:19:18.747  6598  7960 I TestRunner: ",
+                "12-06 17:19:18.747  6598  7960 I TestRunner: java.util.concurrent.TimeoutException",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.support.test.uiautomator.WaitMixin.wait(WaitMixin.java:49)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.support.test.uiautomator.WaitMixin.wait(WaitMixin.java:36)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.support.test.uiautomator.UiDevice.wait(UiDevice.java:169)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.support.test.aupt.AppLauncher.launchApp(AppLauncher.java:127)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at com.android.test.uiautomator.common.helpers.YouTubeHelper.open(YouTubeHelper.java:49)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at com.android.test.uiautomator.aupt.YouTubeTest.setUp(YouTubeTest.java:44)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at junit.framework.TestCase.runBare(TestCase.java:132)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at junit.framework.TestResult$1.protect(TestResult.java:115)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at junit.framework.TestResult.runProtected(TestResult.java:133)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at junit.framework.TestResult.run(TestResult.java:118)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at junit.framework.TestCase.run(TestCase.java:124)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.support.test.aupt.AuptTestRunner$AuptPrivateTestRunner.runTest(AuptTestRunner.java:182)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.test.AndroidTestRunner.runTest(AndroidTestRunner.java:176)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.test.InstrumentationTestRunner.onStart(InstrumentationTestRunner.java:555)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner:    at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:1851)",
+                "12-06 17:19:18.747  6598  7960 I TestRunner: ----- end exception -----"
+                );
+
+        LogcatParser logcatParser = new LogcatParser("2012");
+        logcatParser.addJavaCrashTag("I", "TestRunner", LogcatParser.JAVA_CRASH);
+        LogcatItem logcat = logcatParser.parse(lines);
+        assertNotNull(logcat);
+        assertEquals(1, logcat.getEvents().size());
+        assertEquals(1, logcat.getJavaCrashes().size());
+        assertEquals(6598, logcat.getJavaCrashes().get(0).getPid().intValue());
+        assertEquals(7960, logcat.getJavaCrashes().get(0).getTid().intValue());
+        assertEquals("", logcat.getJavaCrashes().get(0).getLastPreamble());
+        assertEquals("", logcat.getJavaCrashes().get(0).getProcessPreamble());
+        // Check that lines not related to java crash are absent
+        assertFalse(logcat.getJavaCrashes().get(0).getStack().contains("begin exception"));
+        assertFalse(logcat.getJavaCrashes().get(0).getStack().contains("end exception"));
+        assertFalse(logcat.getJavaCrashes().get(0).getStack().contains("failed: testYouTube"));
+        //System.out.println(logcat.getJavaCrashes().get(0).getStack());
+    }
+
     /**
      * Test that Java crashes from system server can be parsed.
      */

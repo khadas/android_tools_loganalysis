@@ -41,6 +41,10 @@ public class JavaCrashParser implements IParser {
      */
     private static final Pattern AT = Pattern.compile("^\tat .+$");
 
+    // Sometimes logcat explicitly marks where exception begins and ends
+    private static final String BEGIN_MARKER = "----- begin exception -----";
+    private static final String END_MARKER = "----- end exception -----";
+
     /**
      * {@inheritDoc}
      *
@@ -56,6 +60,18 @@ public class JavaCrashParser implements IParser {
         boolean inStack = false;
 
         for (String line : lines) {
+            if (line.contains(BEGIN_MARKER)) {
+                inMessage = false;
+                inCausedBy = false;
+                inStack = false;
+                stack = new StringBuilder();
+                message = new StringBuilder();
+                jc = null;
+                continue;
+            }
+            if (line.contains(END_MARKER)) {
+                break;
+            }
             if (!inStack) {
                 Matcher exceptionMatch = EXCEPTION.matcher(line);
                 if (exceptionMatch.matches()) {

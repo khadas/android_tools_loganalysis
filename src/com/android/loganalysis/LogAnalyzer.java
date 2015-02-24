@@ -19,10 +19,12 @@ import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.IItem;
 import com.android.loganalysis.item.KernelLogItem;
 import com.android.loganalysis.item.LogcatItem;
+import com.android.loganalysis.item.MemoryHealthItem;
 import com.android.loganalysis.item.MonkeyLogItem;
 import com.android.loganalysis.parser.BugreportParser;
 import com.android.loganalysis.parser.KernelLogParser;
 import com.android.loganalysis.parser.LogcatParser;
+import com.android.loganalysis.parser.MemoryHealthParser;
 import com.android.loganalysis.parser.MonkeyLogParser;
 import com.android.loganalysis.util.config.ArgsOptionParser;
 import com.android.loganalysis.util.config.ConfigurationException;
@@ -58,6 +60,9 @@ public class LogAnalyzer {
 
     @Option(name="monkey-log", description="The path to the monkey log")
     private String mMonkeyLogPath = null;
+
+    @Option(name="memory-health", description="The path to the memory health log")
+    private String mMemoryHealthLogPath = null;
 
     @Option(name="output", description="The output format, currently only JSON")
     private OutputFormat mOutputFormat = OutputFormat.JSON;
@@ -107,6 +112,13 @@ public class LogAnalyzer {
                 printMonkeyLog(monkeyLog);
                 return;
             }
+
+            if (mMemoryHealthLogPath != null) {
+                reader = getBufferedReader(mMemoryHealthLogPath);
+                MemoryHealthItem item = new MemoryHealthParser().parse(reader);
+                printMemoryHealthLog(item);
+                return;
+            }
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {
@@ -117,6 +129,10 @@ public class LogAnalyzer {
 
         // Should never reach here.
         printUsage();
+    }
+
+    private void printMemoryHealthLog(MemoryHealthItem item) {
+        System.out.println(item.toJson().toString());
     }
 
     /**
@@ -213,6 +229,7 @@ public class LogAnalyzer {
         if (mLogcatPath != null) logCount++;
         if (mKernelLogPath != null) logCount++;
         if (mMonkeyLogPath != null) logCount++;
+        if (mMemoryHealthLogPath != null) logCount++;
         return (logCount == 1);
     }
 

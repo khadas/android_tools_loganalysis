@@ -16,29 +16,32 @@
 
 package com.android.loganalysis;
 
-import com.android.loganalysis.item.DumpsysBatteryInfoItemTest;
+import com.android.loganalysis.item.BatteryDischargeItemTest;
 import com.android.loganalysis.item.GenericItemTest;
+import com.android.loganalysis.item.InterruptItemTest;
 import com.android.loganalysis.item.MemInfoItemTest;
 import com.android.loganalysis.item.MonkeyLogItemTest;
 import com.android.loganalysis.item.ProcrankItemTest;
 import com.android.loganalysis.item.SmartMonkeyLogItemTest;
 import com.android.loganalysis.item.SystemPropsItemTest;
 import com.android.loganalysis.item.TopItemTest;
+import com.android.loganalysis.item.WakelockItemTest;
 import com.android.loganalysis.parser.AbstractSectionParserTest;
 import com.android.loganalysis.parser.AnrParserTest;
 import com.android.loganalysis.parser.BugreportParserTest;
-import com.android.loganalysis.parser.DumpsysBatteryInfoParserTest;
-import com.android.loganalysis.parser.DumpsysParserTest;
+import com.android.loganalysis.parser.InterruptParserTest;
 import com.android.loganalysis.parser.JavaCrashParserTest;
 import com.android.loganalysis.parser.KernelLogParserTest;
 import com.android.loganalysis.parser.LogcatParserTest;
 import com.android.loganalysis.parser.MemInfoParserTest;
 import com.android.loganalysis.parser.MonkeyLogParserTest;
 import com.android.loganalysis.parser.NativeCrashParserTest;
+import com.android.loganalysis.parser.ProcessUsageParserTest;
 import com.android.loganalysis.parser.ProcrankParserTest;
 import com.android.loganalysis.parser.SystemPropsParserTest;
 import com.android.loganalysis.parser.TopParserTest;
 import com.android.loganalysis.parser.TracesParserTest;
+import com.android.loganalysis.parser.WakelockParserTest;
 import com.android.loganalysis.util.ArrayUtilTest;
 import com.android.loganalysis.util.LogPatternUtilTest;
 import com.android.loganalysis.util.LogTailUtilTest;
@@ -61,31 +64,34 @@ public class UnitTests extends TestSuite {
         super();
 
         // item
-        addTestSuite(DumpsysBatteryInfoItemTest.class);
+        addTestSuite(BatteryDischargeItemTest.class);
         addTestSuite(GenericItemTest.class);
+        addTestSuite(InterruptItemTest.class);
         addTestSuite(MemInfoItemTest.class);
         addTestSuite(MonkeyLogItemTest.class);
         addTestSuite(ProcrankItemTest.class);
         addTestSuite(SmartMonkeyLogItemTest.class);
         addTestSuite(SystemPropsItemTest.class);
         addTestSuite(TopItemTest.class);
+        addTestSuite(WakelockItemTest.class);
 
         // parser
         addTestSuite(AbstractSectionParserTest.class);
         addTestSuite(AnrParserTest.class);
         addTestSuite(BugreportParserTest.class);
-        addTestSuite(DumpsysParserTest.class);
-        addTestSuite(DumpsysBatteryInfoParserTest.class);
+        addTestSuite(InterruptParserTest.class);
         addTestSuite(JavaCrashParserTest.class);
         addTestSuite(KernelLogParserTest.class);
         addTestSuite(LogcatParserTest.class);
         addTestSuite(MemInfoParserTest.class);
         addTestSuite(MonkeyLogParserTest.class);
         addTestSuite(NativeCrashParserTest.class);
+        addTestSuite(ProcessUsageParserTest.class);
         addTestSuite(ProcrankParserTest.class);
         addTestSuite(SystemPropsParserTest.class);
         addTestSuite(TopParserTest.class);
         addTestSuite(TracesParserTest.class);
+        addTestSuite(WakelockParserTest.class);
 
         // util
         addTestSuite(ArrayUtilTest.class);

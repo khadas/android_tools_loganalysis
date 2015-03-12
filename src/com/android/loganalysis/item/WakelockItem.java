@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,32 +27,30 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * An {@link IItem} used to store the battery info part of the dumpsys output.
+ * An {@link IItem} used to store information related to wake locks and kernel wake locks
  */
-public class DumpsysBatteryInfoItem implements IItem {
+public class WakelockItem implements IItem {
 
     /** Constant for JSON output */
-    public static final String WAKELOCKS = "WAKELOCKS";
+    public static final String WAKELOCKS = "WAKELOCKS_INFO";
+
+    private Collection<WakelockInfoItem> mWakeLocks = new LinkedList<WakelockInfoItem>();
 
     /**
      * Enum for describing the type of wakelock
      */
     public enum WakeLockCategory {
-        LAST_CHARGE_WAKELOCK,
-        LAST_CHARGE_KERNEL_WAKELOCK,
-        LAST_UNPLUGGED_WAKELOCK,
-        LAST_UNPLUGGED_KERNEL_WAKELOCK;
+        KERNEL_WAKELOCK,
+        PARTIAL_WAKELOCK,
     }
 
-    /**
-     * A class designed to store information related to wake locks and kernel wake locks.
-     */
-    public static class WakeLock extends GenericItem {
-
+    public static class WakelockInfoItem extends GenericItem {
         /** Constant for JSON output */
         public static final String NAME = "NAME";
         /** Constant for JSON output */
-        public static final String NUMBER = "NUMBER";
+        public static final String PROCESS_UID = "PROCESS_UID";
+        /** Constant for JSON output */
+        public static final String PROCESS_NAME = "PROCESS_NAME";
         /** Constant for JSON output */
         public static final String HELD_TIME = "HELD_TIME";
         /** Constant for JSON output */
@@ -61,35 +59,35 @@ public class DumpsysBatteryInfoItem implements IItem {
         public static final String CATEGORY = "CATEGORY";
 
         private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(
-                NAME, NUMBER, HELD_TIME, LOCKED_COUNT, CATEGORY));
+                NAME, PROCESS_UID, PROCESS_NAME, HELD_TIME, LOCKED_COUNT, CATEGORY));
 
         /**
-         * The constructor for {@link WakeLock}
+         * The constructor for {@link WakelockItem}
          *
          * @param name The name of the wake lock
          * @param heldTime The amount of time held in milliseconds
          * @param lockedCount The number of times the wake lock was locked
          * @param category The {@link WakeLockCategory} of the wake lock
          */
-        public WakeLock(String name, long heldTime, int lockedCount, WakeLockCategory category) {
+        public WakelockInfoItem(String name, long heldTime, int lockedCount, WakeLockCategory category) {
             this(name, null, heldTime, lockedCount, category);
         }
 
         /**
-         * The constructor for {@link WakeLock}
+         * The constructor for {@link WakelockItem}
          *
          * @param name The name of the wake lock
-         * @param number The number of the wake lock
+         * @param processUID The number of the wake lock
          * @param heldTime The amount of time held in milliseconds
          * @param lockedCount The number of times the wake lock was locked
          * @param category The {@link WakeLockCategory} of the wake lock
          */
-        public WakeLock(String name, Integer number, long heldTime, int lockedCount,
+        public WakelockInfoItem(String name, String processUID, long heldTime, int lockedCount,
                 WakeLockCategory category) {
             super(ATTRIBUTES);
 
             setAttribute(NAME, name);
-            setAttribute(NUMBER, number);
+            setAttribute(PROCESS_UID, processUID);
             setAttribute(HELD_TIME, heldTime);
             setAttribute(LOCKED_COUNT, lockedCount);
             setAttribute(CATEGORY, category);
@@ -103,10 +101,10 @@ public class DumpsysBatteryInfoItem implements IItem {
         }
 
         /**
-         * Get the number of the wake lock.
+         * Get the process UID holding the wake lock.
          */
-        public Integer getNumber() {
-            return (Integer) getAttribute(NUMBER);
+        public String getProcessUID() {
+            return (String) getAttribute(PROCESS_UID);
         }
 
         /**
@@ -129,26 +127,31 @@ public class DumpsysBatteryInfoItem implements IItem {
         public WakeLockCategory getCategory() {
             return (WakeLockCategory) getAttribute(CATEGORY);
         }
+
+        /**
+         * Set the process name holding the wake lock
+         */
+        public void setWakelockProcessName(String processName) {
+            setAttribute(PROCESS_NAME, processName);
+        }
     }
 
-    private Collection<WakeLock> mWakeLocks = new LinkedList<WakeLock>();
-
     /**
-     * Add a wakelock from the battery info section.
+     * Add a wakelock from the battery stats section.
      *
      * @param name The name of the wake lock.
-     * @param number The number of the wake lock.
+     * @param processUID The number of the wake lock.
      * @param heldTime The held time of the wake lock.
      * @param timesCalled The number of times the wake lock has been called.
      * @param category The {@link WakeLockCategory} of the wake lock.
      */
-    public void addWakeLock(String name, Integer number, long heldTime, int timesCalled,
+    public void addWakeLock(String name, String processUID, long heldTime, int timesCalled,
             WakeLockCategory category) {
-        mWakeLocks.add(new WakeLock(name, number, heldTime, timesCalled, category));
+        mWakeLocks.add(new WakelockInfoItem(name, processUID, heldTime, timesCalled, category));
     }
 
     /**
-     * Add a wakelock from the battery info section.
+     * Add a wakelock from the battery stats section.
      *
      * @param name The name of the wake lock.
      * @param heldTime The held time of the wake lock.
@@ -161,18 +164,30 @@ public class DumpsysBatteryInfoItem implements IItem {
     }
 
     /**
-     * Get a list of {@link WakeLock} objects matching a given {@link WakeLockCategory}.
+     * Get a list of {@link WakelockInfoItem} objects matching a given {@link WakeLockCategory}.
      */
-    public List<WakeLock> getWakeLocks(WakeLockCategory category) {
-        LinkedList<WakeLock> wakeLocks = new LinkedList<WakeLock>();
+    public List<WakelockInfoItem> getWakeLocks(WakeLockCategory category) {
+        LinkedList<WakelockInfoItem> wakeLocks = new LinkedList<WakelockInfoItem>();
         if (category == null) {
             return wakeLocks;
         }
 
-        for (WakeLock wakeLock : mWakeLocks) {
+        for (WakelockInfoItem wakeLock : mWakeLocks) {
             if (category.equals(wakeLock.getCategory())) {
                 wakeLocks.add(wakeLock);
             }
+        }
+        return wakeLocks;
+    }
+
+    /**
+     * Get a list of {@link WakelockInfoItem} .
+     */
+    public List<WakelockInfoItem> getWakeLocks() {
+        LinkedList<WakelockInfoItem> wakeLocks = new LinkedList<WakelockInfoItem>();
+
+        for (WakelockInfoItem wakeLock : mWakeLocks) {
+            wakeLocks.add(wakeLock);
         }
         return wakeLocks;
     }
@@ -182,7 +197,7 @@ public class DumpsysBatteryInfoItem implements IItem {
      */
     @Override
     public IItem merge(IItem other) throws ConflictingItemException {
-        throw new ConflictingItemException("Dumpsys battery info items cannot be merged");
+        throw new ConflictingItemException("Wakelock items cannot be merged");
     }
 
     /**
@@ -199,14 +214,16 @@ public class DumpsysBatteryInfoItem implements IItem {
     @Override
     public JSONObject toJson() {
         JSONObject object = new JSONObject();
-        try {
-            JSONArray wakeLocks = new JSONArray();
-            for (WakeLock wakeLock : mWakeLocks) {
-                wakeLocks.put(wakeLock.toJson());
+        if (mWakeLocks != null) {
+            try {
+                JSONArray wakeLocks = new JSONArray();
+                for (WakelockInfoItem wakeLock : mWakeLocks) {
+                    wakeLocks.put(wakeLock.toJson());
+                }
+                object.put(WAKELOCKS, wakeLocks);
+            } catch (JSONException e) {
+                // Ignore
             }
-            object.put(WAKELOCKS, wakeLocks);
-        } catch (JSONException e) {
-            // Ignore
         }
         return object;
     }

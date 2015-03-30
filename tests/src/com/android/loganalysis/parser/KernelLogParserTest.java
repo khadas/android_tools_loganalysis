@@ -96,6 +96,40 @@ public class KernelLogParserTest extends TestCase {
     }
 
     /**
+     * Test that unknown last boot reasons are parsed.
+     */
+    public void testParseUnknownLastMessage() {
+        List<String> lines = Arrays.asList(
+                "[    0.000000] Start",
+                "[    2.000000] End",
+                "Last boot reason: unknown failure");
+
+        KernelLogItem kernelLog = new KernelLogParser().parse(lines);
+        assertNotNull(kernelLog);
+        assertEquals(0.0, kernelLog.getStartTime(), 0.0000005);
+        assertEquals(2.0, kernelLog.getStopTime(), 0.0000005);
+        assertEquals(1, kernelLog.getEvents().size());
+        assertEquals(1, kernelLog.getMiscEvents(KernelLogParser.KERNEL_RESET).size());
+
+        MiscKernelLogItem item = kernelLog.getMiscEvents(KernelLogParser.KERNEL_RESET).get(0);
+        assertEquals(2.0, item.getEventTime(), 0.0000005);
+        assertEquals("[    0.000000] Start\n[    2.000000] End", item.getPreamble());
+    }
+
+    public void testParseKnownGoodLastMessage() {
+        List<String> lines = Arrays.asList(
+                "[    0.000000] Start",
+                "[    2.000000] End",
+                "Last boot reason: reboot");
+
+        KernelLogItem kernelLog = new KernelLogParser().parse(lines);
+        assertNotNull(kernelLog);
+        assertEquals(0.0, kernelLog.getStartTime(), 0.0000005);
+        assertEquals(2.0, kernelLog.getStopTime(), 0.0000005);
+        assertEquals(0, kernelLog.getEvents().size());
+    }
+
+    /**
      * Test that reset reasons don't crash if times are set.
      */
     public void testNoPreviousLogs() {
@@ -183,7 +217,7 @@ public class KernelLogParserTest extends TestCase {
         assertNotNull(kernelLog);
         assertEquals(0.0, kernelLog.getStartTime(), 0.0000005);
         assertEquals(43.399164, kernelLog.getStopTime(), 0.0000005);
-        assertEquals(1, kernelLog.getEvents().size());
+        assertEquals(2, kernelLog.getEvents().size());
         assertEquals(1, kernelLog.getMiscEvents(KernelLogParser.SELINUX_DENIAL).size());
         assertEquals(1, kernelLog.getSELinuxEvents().size());
 

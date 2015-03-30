@@ -34,6 +34,7 @@ public class KernelLogParser implements IParser {
     public static final String KERNEL_RESET = "KERNEL_RESET";
     public static final String KERNEL_ERROR = "KERNEL_ERROR";
     public static final String SELINUX_DENIAL = "SELINUX_DENIAL";
+    public static final String NORMAL_REBOOT = "NORMAL_REBOOT";
 
     /**
      * Matches: [     0.000000] Message<br />
@@ -57,6 +58,7 @@ public class KernelLogParser implements IParser {
 
     private LogPatternUtil mPatternUtil = new LogPatternUtil();
     private LogTailUtil mPreambleUtil = new LogTailUtil(500, 50, 50);
+    private boolean mRebootReasonFound = false;
 
     public KernelLogParser() {
         initPatterns();
@@ -85,6 +87,7 @@ public class KernelLogParser implements IParser {
      */
     @Override
     public KernelLogItem parse(List<String> lines) {
+        mRebootReasonFound = false;
         for (String line : lines) {
             parseLine(line);
         }
@@ -132,6 +135,14 @@ public class KernelLogParser implements IParser {
             return;
         }
 
+        if (category.equals(KERNEL_RESET) || category.equals(NORMAL_REBOOT)) {
+            mRebootReasonFound = true;
+        }
+
+        if (category.equals(NORMAL_REBOOT)) {
+            return;
+        }
+
         MiscKernelLogItem kernelLogItem;
         if (category.equals(SELINUX_DENIAL)) {
             SELinuxItem selinuxItem = new SELinuxItem();
@@ -159,6 +170,14 @@ public class KernelLogParser implements IParser {
         }
         mKernelLog.setStartTime(mStartTime);
         mKernelLog.setStopTime(mStopTime);
+
+        if (!mRebootReasonFound) {
+            MiscKernelLogItem unknownReset = new MiscKernelLogItem();
+            unknownReset.setEventTime(mStopTime);
+            unknownReset.setPreamble(mPreambleUtil.getLastTail());
+            unknownReset.setCategory(KERNEL_RESET);
+            mKernelLog.addEvent(unknownReset);
+        }
     }
 
     private void initPatterns() {
@@ -181,8 +200,16 @@ public class KernelLogParser implements IParser {
             "Last boot reason: " + BAD_BOOTREASONS,
             "Last reset was system watchdog timer reset.*",
         };
+        final String[] goodSignatures = {
+                "Restarting system.*",
+                "Power down.*",
+                "Last boot reason: (?:PowerKey|normal|recovery|reboot)",
+        };
         for (String pattern : kernelResets) {
             mPatternUtil.addPattern(Pattern.compile(pattern), KERNEL_RESET);
+        }
+        for (String pattern : goodSignatures) {
+            mPatternUtil.addPattern(Pattern.compile(pattern), NORMAL_REBOOT);
         }
 
         mPatternUtil.addPattern(Pattern.compile("Internal error:.*"), KERNEL_ERROR);

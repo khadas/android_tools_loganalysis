@@ -25,28 +25,45 @@ import java.util.Set;
 public class DumpsysItem extends GenericItem {
 
     /** Constant for JSON output */
-    private static final String BATTERY_INFO = "BATTERY_INFO";
+    private static final String BATTERY_STATS = "BATTERY_STATS";
+    /** Constant for JSON output */
+    private static final String PROC_STATS = "PROC_STATS";
 
-    private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(BATTERY_INFO));
+    private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(
+            BATTERY_STATS, PROC_STATS));
 
     /**
-     * The constructor for {@link BugreportItem}.
+     * The constructor for {@link DumpsysItem}.
      */
     public DumpsysItem() {
         super(ATTRIBUTES);
     }
 
     /**
-     * Get the battery info section of the dumpsys.
+     * Set the {@link DumpsysBatteryStatsItem} of the bugreport.
      */
-    public DumpsysBatteryInfoItem getBatteryInfo() {
-        return (DumpsysBatteryInfoItem) getAttribute(BATTERY_INFO);
+    public void setBatteryInfo(DumpsysBatteryStatsItem batteryStats) {
+        setAttribute(BATTERY_STATS, batteryStats);
     }
 
     /**
-     * Set the battery info section of the dumpsys.
+     * Set the {@link DumpsysProcStatsItem} of the bugreport.
      */
-    public void setBatteryInfo(DumpsysBatteryInfoItem batteryInfo) {
-        setAttribute(BATTERY_INFO, batteryInfo);
+    public void setProcStats(DumpsysProcStatsItem procStats) {
+        setAttribute(PROC_STATS, procStats);
+    }
+
+    /**
+     * Get the {@link DumpsysBatteryStatsItem} of the bugreport.
+     */
+    public DumpsysBatteryStatsItem getBatteryStats() {
+        return (DumpsysBatteryStatsItem) getAttribute(BATTERY_STATS);
+    }
+
+    /**
+     * Get the {@link DumpsysProcStatsItem} of the bugreport.
+     */
+    public DumpsysProcStatsItem getProcStats() {
+        return (DumpsysProcStatsItem) getAttribute(PROC_STATS);
     }
 }

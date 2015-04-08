@@ -15,7 +15,7 @@
  */
 package com.android.loganalysis.parser;
 
-import com.android.loganalysis.item.DumpsysItem;
+import com.android.loganalysis.item.BatteryStatsDetailedInfoItem;
 
 import junit.framework.TestCase;
 
@@ -23,25 +23,15 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Unit tests for {@link DumpsysParser}
+ * Unit tests for {@link BatteryStatsDetailedInfoParser}
  */
-public class DumpsysParserTest extends TestCase {
+public class BatteryStatsDetailedInfoParserTest extends TestCase {
 
     /**
      * Test that normal input is parsed.
      */
-    public void testDumpsysParser() {
+    public void testBatteryStatsDetailedInfoParser() {
         List<String> inputBlock = Arrays.asList(
-                "DUMP OF SERVICE batterystats:",
-                "Battery History (37% used, 95KB used of 256KB, 166 strings using 15KB):",
-                "     0 (9) RESET:TIME: 2014-12-09-11-33-29",
-                "     +1s067ms (1) 100 c0500020 -wifi_full_lock -wifi_scan",
-                "     +3s297ms (2) 100 80400020 -wake_lock -screen",
-                "     +30m02s075ms (1) 100 c0500020 wifi_signal_strength=4 wifi_suppl=completed",
-                "     +30m03s012ms (2) 099 c0500020 temp=306 volt=4217",
-                "     +33m48s967ms (1) 099 f8400020 +wifi_scan",
-                "     +33m49s335ms (2) 098 f0400020 temp=324 -wifi_scan",
-                "Statistics since last charge:",
                 " Time on battery: 2h 21m 5s 622ms (12.0%) realtime, 7m 54s 146ms (0.7%) uptime",
                 " Time on battery screen off: 2h 5m 55s 3ms (1%) realtime, 7m 4s 5ms (7%) uptime",
                 " Total run time: 19h 38m 43s 650ms realtime, 17h 25m 32s 175ms uptime",
@@ -84,19 +74,58 @@ public class DumpsysParserTest extends TestCase {
                 "    Mobile radio active: 3m 43s 890ms (34.2%) 39x @ 354 mspp",
                 "    Sensor 2: 12m 13s 15ms realtime (5 times)",
                 "    Sensor 32: (not used)",
-                "    Sensor 35: (not used)",
-                "DUMP OF SERVICE procstats:",
-                "COMMITTED STATS FROM 2015-03-20-02-01-02 (checked in):",
-                "  * com.android.systemui / u0a22 / v22:",
-                "           TOTAL: 100% (159MB-160MB-161MB/153MB-153MB-154MB over 13)",
-                "      Persistent: 100% (159MB-160MB-161MB/153MB-153MB-154MB over 13)",
-                "  * com.google.process.gapps / u0a9 / v22:",
-                "           TOTAL: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)",
-                "          Imp Fg: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)");
+                "    Sensor 35: (not used)");
 
-        DumpsysItem dumpsys = new DumpsysParser().parse(inputBlock);
-        assertNotNull(dumpsys.getBatteryStats());
-        assertNotNull(dumpsys.getProcStats());
+        BatteryStatsDetailedInfoItem stats = new BatteryStatsDetailedInfoParser().parse(inputBlock);
+
+        assertEquals(8465622, stats.getTimeOnBattery());
+        assertEquals(910619, stats.getScreenOnTime());
+        assertNotNull(stats.getWakelockItem());
+        assertNotNull(stats.getInterruptItem());
+        assertNotNull(stats.getProcessUsageItem());
+    }
+
+    /**
+     * Test with missing wakelock section
+     */
+    public void testMissingWakelockSection() {
+        List<String> inputBlock = Arrays.asList(
+                " Time on battery: 2h 21m 5s 622ms (12.0%) realtime, 7m 54s 146ms (0.7%) uptime",
+                " Time on battery screen off: 2h 5m 55s 3ms (1%) realtime, 7m 4s 5ms (7%) uptime",
+                " Total run time: 19h 38m 43s 650ms realtime, 17h 25m 32s 175ms uptime",
+                " All wakeup reasons:",
+                " Wakeup reason 200:qcom,smd-rpm:222:fc4: 11m 49s 332ms (0 times) realtime",
+                " Wakeup reason 200:qcom,smd-rpm: 48s 45ms (0 times) realtime",
+                " Wakeup reason 2:qcom,smd-rpm:2:f0.qm,mm:22:fc4mi: 3s 417ms (0 times) realtime",
+                " Wakeup reason 188:qcom,smd-adsp:200:qcom,smd-rpm: 1s 656ms (0 times) realtime",
+                " Wakeup reason 58:qcom,smsm-modem:2:qcom,smd-rpm: 6m 16s 1ms (5 times) realtime",
+                " Wakeup reason 57:qcom,smd-modem:200:qcom,smd-rpm: 40s 995ms (0 times) realtime",
+                " Wakeup reason unknown: 8s 455ms (0 times) realtime",
+                " Wakeup reason 9:bcmsdh_sdmmc:2:qcomd-rpm:240:mso: 8m 5s 9ms (0 times) realtime",
+                " ",
+                " 0:",
+                "    User activity: 2 other",
+                "    Wake lock SCREEN_FROZEN realtime",
+                "    Sensor 0: 9s 908ms realtime (1 times)",
+                "    Sensor 1: 9s 997ms realtime (1 times)",
+                "    Foreground for: 2h 21m 5s 622ms",
+                "    Apk android:",
+                "      24 wakeup alarms",
+                " u0a9:",
+                "    Mobile network: 8.1KB received, 1.6KB sent (packets 291 received, 342 sent)",
+                "    Mobile radio active: 3m 43s 890ms (34.2%) 39x @ 354 mspp",
+                "    Sensor 2: 12m 13s 15ms realtime (5 times)",
+                "    Sensor 32: (not used)",
+                "    Sensor 35: (not used)");
+        BatteryStatsDetailedInfoItem stats = new BatteryStatsDetailedInfoParser().parse(inputBlock);
+
+        assertEquals(8465622, stats.getTimeOnBattery());
+        assertEquals(910619, stats.getScreenOnTime());
+
+        assertNull(stats.getWakelockItem());
+
+        assertNotNull(stats.getInterruptItem());
+        assertNotNull(stats.getProcessUsageItem());
     }
 }
 

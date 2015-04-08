@@ -26,10 +26,14 @@ import com.android.loganalysis.parser.KernelLogParser;
 import com.android.loganalysis.parser.LogcatParser;
 import com.android.loganalysis.parser.MemoryHealthParser;
 import com.android.loganalysis.parser.MonkeyLogParser;
+import com.android.loganalysis.rule.RuleEngine;
+import com.android.loganalysis.rule.RuleEngine.RuleType;
 import com.android.loganalysis.util.config.ArgsOptionParser;
 import com.android.loganalysis.util.config.ConfigurationException;
 import com.android.loganalysis.util.config.Option;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -39,6 +43,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A command line tool to parse a bugreport, logcat, or kernel log file and return the output.
  */
@@ -47,6 +54,10 @@ public class LogAnalyzer {
     private enum OutputFormat{
         // TODO: Add text output support.
         JSON;
+    }
+
+    private enum ResultType {
+        RAW, ANALYSIS;
     }
 
     @Option(name="bugreport", description="The path to the bugreport")
@@ -66,6 +77,17 @@ public class LogAnalyzer {
 
     @Option(name="output", description="The output format, currently only JSON")
     private OutputFormat mOutputFormat = OutputFormat.JSON;
+
+    @Option(name="rule-type", description="The type of rules to be applied")
+    private RuleType mRuleType = RuleType.ALL;
+
+    @Option(name="print", description="Print the result type")
+    private List<ResultType> mResultType = new ArrayList<ResultType>();
+
+    /** Constant for JSON output */
+    private static final String RAW_DATA = "RAW";
+    /** Constant for JSON output */
+    private static final String ANALYSIS_DATA = "ANALYSIS";
 
     /**
      * Run the command line tool
@@ -140,9 +162,61 @@ public class LogAnalyzer {
      */
     private void printBugreport(BugreportItem bugreport) {
         if (OutputFormat.JSON.equals(mOutputFormat)) {
-            printJson(bugreport);
+            if (mResultType.size() == 0) {
+                printJson(bugreport);
+            } else if (mResultType.size() == 1) {
+                switch (mResultType.get(0)) {
+                    case RAW:
+                        printJson(bugreport);
+                        break;
+                    case ANALYSIS:
+                        printBugreportAnalysis(getBugreportAnalysis(bugreport));
+                        break;
+                    default:
+                        // should not get here
+                        return;
+                }
+            } else {
+                JSONObject result = new JSONObject();
+                try {
+                    for (ResultType resultType : mResultType) {
+                        switch (resultType) {
+                            case RAW:
+                                result.put(RAW_DATA, bugreport.toJson());
+                                break;
+                            case ANALYSIS:
+                                result.put(ANALYSIS_DATA, getBugreportAnalysis(bugreport));
+                                break;
+                            default:
+                                // should not get here
+                                break;
+                        }
+                    }
+                } catch (JSONException e) {
+                    // Ignore
+                }
+                printJson(result);
+            }
         }
-        // TODO: Print bugreport in human readable form.
+    }
+
+    private JSONArray getBugreportAnalysis(BugreportItem bugreport) {
+        RuleEngine ruleEngine = new RuleEngine(bugreport);
+        ruleEngine.registerRules(mRuleType);
+        ruleEngine.executeRules();
+        if (ruleEngine.getAnalysis() != null) {
+            return ruleEngine.getAnalysis();
+        } else {
+            return new JSONArray();
+        }
+    }
+
+    private void printBugreportAnalysis(JSONArray analysis) {
+        if (analysis != null && analysis.length() > 0) {
+            System.out.println(analysis.toString());
+        } else {
+            System.out.println(new JSONObject().toString());
+        }
     }
 
     /**
@@ -180,7 +254,18 @@ public class LogAnalyzer {
      */
     private void printJson(IItem item) {
         if (item != null && item.toJson() != null) {
-            System.out.println(item.toJson().toString());
+            printJson(item.toJson());
+        } else {
+            printJson(new JSONObject());
+        }
+    }
+
+    /**
+     * Print an {@link JSONObject} to stdout
+     */
+    private void printJson(JSONObject json) {
+        if (json != null) {
+            System.out.println(json.toString());
         } else {
             System.out.println(new JSONObject().toString());
         }

@@ -15,7 +15,7 @@
  */
 package com.android.loganalysis.parser;
 
-import com.android.loganalysis.item.DumpsysItem;
+import com.android.loganalysis.item.DumpsysBatteryStatsItem;
 
 import junit.framework.TestCase;
 
@@ -23,16 +23,15 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Unit tests for {@link DumpsysParser}
+ * Unit tests for {@link DumpsysBatteryStatsParser}
  */
-public class DumpsysParserTest extends TestCase {
+public class DumpsysBatteryStatsParserTest extends TestCase {
 
     /**
      * Test that normal input is parsed.
      */
-    public void testDumpsysParser() {
+    public void testBatteryStatsParser() {
         List<String> inputBlock = Arrays.asList(
-                "DUMP OF SERVICE batterystats:",
                 "Battery History (37% used, 95KB used of 256KB, 166 strings using 15KB):",
                 "     0 (9) RESET:TIME: 2014-12-09-11-33-29",
                 "     +1s067ms (1) 100 c0500020 -wifi_full_lock -wifi_scan",
@@ -84,19 +83,11 @@ public class DumpsysParserTest extends TestCase {
                 "    Mobile radio active: 3m 43s 890ms (34.2%) 39x @ 354 mspp",
                 "    Sensor 2: 12m 13s 15ms realtime (5 times)",
                 "    Sensor 32: (not used)",
-                "    Sensor 35: (not used)",
-                "DUMP OF SERVICE procstats:",
-                "COMMITTED STATS FROM 2015-03-20-02-01-02 (checked in):",
-                "  * com.android.systemui / u0a22 / v22:",
-                "           TOTAL: 100% (159MB-160MB-161MB/153MB-153MB-154MB over 13)",
-                "      Persistent: 100% (159MB-160MB-161MB/153MB-153MB-154MB over 13)",
-                "  * com.google.process.gapps / u0a9 / v22:",
-                "           TOTAL: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)",
-                "          Imp Fg: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)");
+                "    Sensor 35: (not used)");
 
-        DumpsysItem dumpsys = new DumpsysParser().parse(inputBlock);
-        assertNotNull(dumpsys.getBatteryStats());
-        assertNotNull(dumpsys.getProcStats());
+        DumpsysBatteryStatsItem batteryStats = new DumpsysBatteryStatsParser().parse(inputBlock);
+        assertNotNull(batteryStats.getBatteryStatsSummaryItem());
+        assertNotNull(batteryStats.getDetailedBatteryStatsItem());
     }
 }
 

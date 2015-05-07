@@ -283,14 +283,39 @@ public class LogcatParserTest extends TestCase {
     }
 
     /**
-     * Test that native crashes can be parsed.
+     * Test that native crashes can be parsed from the info log level.
      */
-    public void testParse_native_crash() throws ParseException {
+    public void testParse_native_crash_info() throws ParseException {
         List<String> lines = Arrays.asList(
                 "04-25 18:33:27.273   115   115 I DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
                 "04-25 18:33:27.273   115   115 I DEBUG   : Build fingerprint: 'product:build:target'",
                 "04-25 18:33:27.273   115   115 I DEBUG   : pid: 3112, tid: 3112  >>> com.google.android.browser <<<",
                 "04-25 18:33:27.273   115   115 I DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 00000000");
+
+        LogcatItem logcat = new LogcatParser("2012").parse(lines);
+        assertNotNull(logcat);
+        assertEquals(parseTime("2012-04-25 18:33:27.273"), logcat.getStartTime());
+        assertEquals(parseTime("2012-04-25 18:33:27.273"), logcat.getStopTime());
+        assertEquals(1, logcat.getEvents().size());
+        assertEquals(1, logcat.getNativeCrashes().size());
+        assertEquals(3112, logcat.getNativeCrashes().get(0).getPid().intValue());
+        assertEquals(3112, logcat.getNativeCrashes().get(0).getTid().intValue());
+        assertEquals("com.google.android.browser", logcat.getNativeCrashes().get(0).getApp());
+        assertEquals("", logcat.getNativeCrashes().get(0).getLastPreamble());
+        assertEquals("", logcat.getNativeCrashes().get(0).getProcessPreamble());
+        assertEquals(parseTime("2012-04-25 18:33:27.273"),
+                logcat.getNativeCrashes().get(0).getEventTime());
+    }
+
+    /**
+     * Test that native crashes can be parsed from the fatal log level.
+     */
+    public void testParse_native_crash_fatal() throws ParseException {
+        List<String> lines = Arrays.asList(
+                "04-25 18:33:27.273   115   115 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
+                "04-25 18:33:27.273   115   115 F DEBUG   : Build fingerprint: 'product:build:target'",
+                "04-25 18:33:27.273   115   115 F DEBUG   : pid: 3112, tid: 3112, name: Name  >>> com.google.android.browser <<<",
+                "04-25 18:33:27.273   115   115 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 00000000");
 
         LogcatItem logcat = new LogcatParser("2012").parse(lines);
         assertNotNull(logcat);

@@ -241,7 +241,7 @@ public class LogcatParser implements IParser {
                 Pattern.matches("Rebooting, reason: .*", msg)) {
             mIsParsing = false;
         }
-        if (Pattern.matches(".*--------- beginning of /dev/log/main", line)) {
+        if (Pattern.matches(".*--------- beginning of .*", line)) {
             mIsParsing = true;
         }
 

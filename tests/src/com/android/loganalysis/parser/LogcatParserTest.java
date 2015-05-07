@@ -607,6 +607,26 @@ public class LogcatParserTest extends TestCase {
         assertEquals(parseTime("2012-04-25 09:59:47.799"), logcat.getStopTime());
         assertEquals(1, logcat.getEvents().size());
         assertEquals("java.lang.Exception2", logcat.getJavaCrashes().get(0).getException());
+
+        lines = Arrays.asList(
+                "04-25 09:15:47.799   123  3082 I ShutdownThread: Rebooting, reason: null",
+                "04-25 09:55:47.799  3064  3082 E AndroidRuntime: java.lang.Exception",
+                "04-25 09:55:47.799  3064  3082 E AndroidRuntime: \tat class.method1(Class.java:1)",
+                "04-25 09:55:47.799  3064  3082 E AndroidRuntime: \tat class.method2(Class.java:2)",
+                "04-25 09:55:47.799  3064  3082 E AndroidRuntime: \tat class.method3(Class.java:3)",
+                "logcat interrupted. May see duplicated content in log.--------- beginning of main",
+                "04-25 09:59:47.799  3064  3082 E AndroidRuntime: java.lang.Exception2",
+                "04-25 09:59:47.799  3064  3082 E AndroidRuntime: \tat class.method1(Class.java:1)",
+                "04-25 09:59:47.799  3064  3082 E AndroidRuntime: \tat class.method2(Class.java:2)",
+                "04-25 09:59:47.799  3064  3082 E AndroidRuntime: \tat class.method3(Class.java:3)");
+
+
+        logcat = new LogcatParser("2012").parse(lines);
+        assertNotNull(logcat);
+        assertEquals(parseTime("2012-04-25 09:15:47.799"), logcat.getStartTime());
+        assertEquals(parseTime("2012-04-25 09:59:47.799"), logcat.getStopTime());
+        assertEquals(1, logcat.getEvents().size());
+        assertEquals("java.lang.Exception2", logcat.getJavaCrashes().get(0).getException());
     }
 
     /**

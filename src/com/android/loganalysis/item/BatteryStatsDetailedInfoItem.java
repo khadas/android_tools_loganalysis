@@ -28,6 +28,8 @@ public class BatteryStatsDetailedInfoItem implements IItem {
     /** Constant for JSON output */
     public static final String SCREEN_ON_TIME = "SCREEN_ON_TIME";
     /** Constant for JSON output */
+    public static final String BATTERY_USAGE = "BATTERY_USAGE";
+    /** Constant for JSON output */
     public static final String WAKELOCKS = "WAKELOCKS";
     /** Constant for JSON output */
     public static final String INTERRUPTS = "INTERRUPTS";
@@ -36,6 +38,7 @@ public class BatteryStatsDetailedInfoItem implements IItem {
 
     private long mTimeOnBattery = 0;
     private long mScreenOnTime = 0;
+    private BatteryUsageItem mBatteryUsageItem = null;
     private WakelockItem mWakelockItem = null;
     private InterruptItem mInterruptItem = null;
     private ProcessUsageItem mprocessUsageItem = null;
@@ -76,6 +79,13 @@ public class BatteryStatsDetailedInfoItem implements IItem {
     }
 
     /**
+     * Set the process usage {@link BatteryUsageItem}
+     */
+    public void setBatteryUsageItem(BatteryUsageItem batteryUsageItem) {
+        mBatteryUsageItem = batteryUsageItem;
+    }
+
+    /**
      * Get the time on battery
      */
     public long getTimeOnBattery() {
@@ -111,6 +121,13 @@ public class BatteryStatsDetailedInfoItem implements IItem {
     }
 
     /**
+     * Get the battery usage summary {@link BatteryUsageItem}
+     */
+    public BatteryUsageItem getBatteryUsageItem() {
+        return mBatteryUsageItem;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -138,6 +155,9 @@ public class BatteryStatsDetailedInfoItem implements IItem {
             }
             if (mScreenOnTime > 0) {
                 batteryStatsComponent.put(SCREEN_ON_TIME, getScreenOnTime());
+            }
+            if (mBatteryUsageItem != null) {
+                batteryStatsComponent.put(BATTERY_USAGE, mBatteryUsageItem.toJson());
             }
             if (mWakelockItem != null) {
                 batteryStatsComponent.put(WAKELOCKS, mWakelockItem.toJson());

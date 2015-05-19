@@ -17,6 +17,7 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.BatteryStatsDetailedInfoItem;
+import com.android.loganalysis.item.BatteryUsageItem;
 import com.android.loganalysis.item.InterruptItem;
 import com.android.loganalysis.item.ProcessUsageItem;
 import com.android.loganalysis.item.WakelockItem;
@@ -32,6 +33,7 @@ import java.util.regex.Pattern;
  */
 public class BatteryStatsDetailedInfoParser extends AbstractSectionParser {
 
+    private static final String BATTERY_USAGE_SECTION_REGEX = "^\\s*Estimated power use \\(mAh\\):$";
     private static final String WAKELOCK_SECTION_REGEX = "^\\s*All kernel wake locks:$";
     private static final String INTERRUPT_SECTION_REGEX = "^\\s*All wakeup reasons:$";
     private static final String PROCESS_USAGE_SECTION_REGEX = "^\\s*0:$";
@@ -49,6 +51,7 @@ public class BatteryStatsDetailedInfoParser extends AbstractSectionParser {
         + "screen off: (?:(\\d+)d)?\\s?(?:(\\d+)h)?\\s?(?:(\\d+)m)?\\s?(?:(\\d+)s)?\\s?"
         + "(?:(\\d+)ms).*");
 
+    private BatteryUsageParser mBatteryUsageParser = new BatteryUsageParser();
     private WakelockParser mWakelockParser = new WakelockParser();
     private InterruptParser mInterruptParser = new InterruptParser();
     private ProcessUsageParser mProcessUsageParser = new ProcessUsageParser();
@@ -123,6 +126,7 @@ public class BatteryStatsDetailedInfoParser extends AbstractSectionParser {
      */
     protected void setup() {
         setParser(mBatteryTimeParser);
+        addSectionParser(mBatteryUsageParser, BATTERY_USAGE_SECTION_REGEX);
         addSectionParser(mWakelockParser, WAKELOCK_SECTION_REGEX);
         addSectionParser(mInterruptParser, INTERRUPT_SECTION_REGEX);
         addSectionParser(mProcessUsageParser, PROCESS_USAGE_SECTION_REGEX);
@@ -149,17 +153,19 @@ public class BatteryStatsDetailedInfoParser extends AbstractSectionParser {
         super.commit();
         if (mParsedInput) {
             if (mBatteryStatsDetailedInfoItem == null) {
-              mBatteryStatsDetailedInfoItem = new BatteryStatsDetailedInfoItem();
+                mBatteryStatsDetailedInfoItem = new BatteryStatsDetailedInfoItem();
             }
         }
 
         if (mBatteryStatsDetailedInfoItem != null) {
+            mBatteryStatsDetailedInfoItem.setBatteryUsageItem(
+                    (BatteryUsageItem) getSection(mBatteryUsageParser));
             mBatteryStatsDetailedInfoItem.setWakelockItem(
-                (WakelockItem) getSection(mWakelockParser));
+                    (WakelockItem) getSection(mWakelockParser));
             mBatteryStatsDetailedInfoItem.setInterruptItem(
-                (InterruptItem) getSection(mInterruptParser));
+                    (InterruptItem) getSection(mInterruptParser));
             mBatteryStatsDetailedInfoItem.setProcessUsageItem(
-                (ProcessUsageItem) getSection(mProcessUsageParser));
+                    (ProcessUsageItem) getSection(mProcessUsageParser));
         }
     }
 }

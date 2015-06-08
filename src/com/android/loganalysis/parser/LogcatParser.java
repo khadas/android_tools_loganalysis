@@ -274,13 +274,13 @@ public class LogcatParser implements IParser {
             data.mLines.add(msg);
         }
 
-        // Native crashes are separated either by different PID/TIDs or when NativeCrashParser.START
-        // matches a line.  The newest entry is kept in the dataMap for quick lookup while all
-        // entries are added to the list.
+        // Native crashes are separated either by different PID/TIDs or when
+        // NativeCrashParser.FINGERPRINT matches a line.  The newest entry is kept in the dataMap
+        // for quick lookup while all entries are added to the list.
         if (anyNativeCrashTagMatches(level, tag)) {
             String key = encodeLine(pid, tid, level, tag);
             LogcatData data;
-            if (!mDataMap.containsKey(key) || NativeCrashParser.START.matcher(msg).matches()) {
+            if (!mDataMap.containsKey(key) || NativeCrashParser.FINGERPRINT.matcher(msg).matches()) {
                 data = new LogcatData(pid, tid, time, level, tag, mPreambleUtil.getLastTail(),
                         mPreambleUtil.getIdTail(pid));
                 mDataMap.put(key, data);

@@ -26,14 +26,11 @@ import java.util.regex.Pattern;
  */
 public class NativeCrashParser implements IParser {
 
-    /** Matches: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-    public static final Pattern START = Pattern.compile("^(?:\\*\\*\\* ){15}\\*\\*\\*$");
     /** Matches: Build fingerprint: 'fingerprint' */
-    private static final Pattern FINGERPRINT = Pattern.compile("^Build fingerprint: '(.*)'$");
+    public static final Pattern FINGERPRINT = Pattern.compile("^Build fingerprint: '(.*)'$");
     /** Matches: pid: 957, tid: 963  >>> com.android.camera <<< */
     private static final Pattern APP = Pattern.compile(
             "^pid: (\\d+), tid: (\\d+)(, name: .+)?  >>> (\\S+) <<<$");
-
 
     /**
      * {@inheritDoc}
@@ -46,16 +43,13 @@ public class NativeCrashParser implements IParser {
         StringBuilder stack = new StringBuilder();
 
         for (String line : lines) {
-            Matcher m = START.matcher(line);
+            Matcher m = FINGERPRINT.matcher(line);
             if (m.matches()) {
                 nc = new NativeCrashItem();
-            }
+                nc.setFingerprint(m.group(1));
+           }
 
             if (nc != null) {
-                m = FINGERPRINT.matcher(line);
-                if (m.matches()) {
-                    nc.setFingerprint(m.group(1));
-                }
                 m = APP.matcher(line);
                 if (m.matches()) {
                     nc.setPid(Integer.valueOf(m.group(1)));

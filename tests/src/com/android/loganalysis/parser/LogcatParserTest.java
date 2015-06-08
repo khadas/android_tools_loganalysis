@@ -287,7 +287,6 @@ public class LogcatParserTest extends TestCase {
      */
     public void testParse_native_crash_info() throws ParseException {
         List<String> lines = Arrays.asList(
-                "04-25 18:33:27.273   115   115 I DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
                 "04-25 18:33:27.273   115   115 I DEBUG   : Build fingerprint: 'product:build:target'",
                 "04-25 18:33:27.273   115   115 I DEBUG   : pid: 3112, tid: 3112  >>> com.google.android.browser <<<",
                 "04-25 18:33:27.273   115   115 I DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 00000000");
@@ -312,7 +311,6 @@ public class LogcatParserTest extends TestCase {
      */
     public void testParse_native_crash_fatal() throws ParseException {
         List<String> lines = Arrays.asList(
-                "04-25 18:33:27.273   115   115 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
                 "04-25 18:33:27.273   115   115 F DEBUG   : Build fingerprint: 'product:build:target'",
                 "04-25 18:33:27.273   115   115 F DEBUG   : pid: 3112, tid: 3112, name: Name  >>> com.google.android.browser <<<",
                 "04-25 18:33:27.273   115   115 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 00000000");

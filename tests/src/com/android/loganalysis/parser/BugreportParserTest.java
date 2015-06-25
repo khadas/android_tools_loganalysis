@@ -124,7 +124,7 @@ public class BugreportParserTest extends TestCase {
                 "          +45s702ms (2) 001 80080000 volt=4187",
                 "          +1m15s525ms (2) 001 80080000 temp=299 volt=4155",
                 "Statistics since last charged:",
-                "  Time on battery: 1h 5m 2s 4ms (9%) realtime, 1h 5m 2s 4ms (9%) uptime", 
+                "  Time on battery: 1h 5m 2s 4ms (9%) realtime, 1h 5m 2s 4ms (9%) uptime",
                 " Time on battery screen off: 1h 4m 5s 8ms (9%) realtime, 1h 4m 5s 8ms (9%) uptime",
                 " All kernel wake locks:",
                 " Kernel Wake lock PowerManagerService.WakeLocks: 5m 10s 6ms (2 times) realtime",
@@ -133,8 +133,9 @@ public class BugreportParserTest extends TestCase {
                 "  All partial wake locks:",
                 "  Wake lock 1001 ProxyController: 1h 4m 47s 565ms (4 times) realtime",
                 "  Wake lock 1013 AudioMix: 1s 979ms (3 times) realtime",
+                "",
                 "  All wakeup reasons:",
-                "  Wakeup reason 2:bcmsdh_sdmmc:2:qcom,smd:2:msmgio: 1m 5s 4ms (2 times) realtime", 
+                "  Wakeup reason 2:bcmsdh_sdmmc:2:qcom,smd:2:msmgio: 1m 5s 4ms (2 times) realtime",
                 "  Wakeup reason 2:qcom,smd-rpm:2:fc4c.qcom,spmi: 7m 1s 914ms (7 times) realtime",
                 "");
 

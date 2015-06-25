@@ -31,7 +31,7 @@ public class WakelockParserTest extends TestCase {
     /**
      * Test that normal input is parsed.
      */
-    public void testWakelockParser() {
+    public void testKernelWakelockParser() {
         List<String> inputBlock = Arrays.asList(
                " All kernel wake locks:",
                " Kernel Wake lock PowerManagerService.WakeLocks: 1h 3m 50s 5ms (8 times) realtime",
@@ -40,14 +40,8 @@ public class WakelockParserTest extends TestCase {
                " Kernel Wake lock wlan_rx_wake: 3m 19s 887ms (225 times) realtime",
                " Kernel Wake lock wlan_tx_wake: 2m 19s 887ms (225 times) realtime",
                " Kernel Wake lock tx_wake: 1m 19s 887ms (225 times) realtime",
-               " ",
-               " All partial wake locks:",
-               " Wake lock u0a7 NlpWakeLock: 8m 13s 203ms (1479 times) realtime",
-               " Wake lock u0a7 NlpCollectorWakeLock: 6m 29s 18ms (238 times) realtime",
-               " Wake lock u0a7 GCM_CONN_ALARM: 6m 8s 587ms (239 times) realtime",
-               " Wake lock 1000 *alarm*: 5m 11s 316ms (1469 times) realtime",
-               " Wake lock u10 xxx: 4m 11s 316ms (1469 times) realtime",
-               " Wake lock u30 cst: 2m 11s 316ms (1469 times) realtime");
+               " "
+              );
 
         WakelockItem wakelock = new WakelockParser().parse(inputBlock);
 
@@ -59,6 +53,20 @@ public class WakelockParserTest extends TestCase {
                 get(0).getHeldTime());
         assertEquals(2399, wakelock.getWakeLocks(WakeLockCategory.KERNEL_WAKELOCK).
                 get(0).getLockedCount());
+    }
+
+    public void testPartialWakelockParser() {
+        List<String> inputBlock = Arrays.asList(
+                " All partial wake locks:",
+                " Wake lock u0a7 NlpWakeLock: 8m 13s 203ms (1479 times) realtime",
+                " Wake lock u0a7 NlpCollectorWakeLock: 6m 29s 18ms (238 times) realtime",
+                " Wake lock u0a7 GCM_CONN_ALARM: 6m 8s 587ms (239 times) realtime",
+                " Wake lock 1000 *alarm*: 5m 11s 316ms (1469 times) realtime",
+                " Wake lock u10 xxx: 4m 11s 316ms (1469 times) realtime",
+                " Wake lock u30 cst: 2m 11s 316ms (1469 times) realtime",
+                "");
+
+        WakelockItem wakelock = new WakelockParser().parse(inputBlock);
 
         assertEquals(WakelockParser.TOP_WAKELOCK_COUNT,
                 wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).size());
@@ -70,6 +78,25 @@ public class WakelockParserTest extends TestCase {
                 get(0).getHeldTime());
         assertEquals(1479, wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).
                 get(0).getLockedCount());
+    }
+
+    public void testInvalidInputWakelockParser() {
+        List<String> inputBlock = Arrays.asList(
+             " lock PowerManagerService.WakeLocks: 1h 3m 50s 5ms (8 times) realtime",
+             " lock event0-2656 : 3m 49s 268ms (2399 times) realtime",
+             " lock wlan_wd_wake: 3m 34s 639ms (1751 times) realtime",
+             " lock wlan_rx_wake: 3m 19s 887ms (225 times) realtime",
+             " wlan_tx_wake: 2m 19s 887ms (225 times) realtime",
+             " tx_wake: 1m 19s 887ms (225 times) realtime",
+             " "
+            );
+
+        WakelockItem wakelock = new WakelockParser().parse(inputBlock);
+
+        assertEquals(0,
+                wakelock.getWakeLocks(WakeLockCategory.KERNEL_WAKELOCK).size());
+        assertEquals(0,
+                wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).size());
     }
 }
 

@@ -28,9 +28,6 @@ import java.util.regex.Pattern;
  */
 public class WakelockParser implements IParser {
 
-    private static final Pattern PARTIAL_WAKE_LOCK_START_PAT = Pattern.compile(
-            "^\\s*All partial wake locks:$");
-
     private static final String WAKE_LOCK_PAT_SUFFIX =
             "(?:(\\d+)d)?\\s?(?:(\\d+)h)?\\s?(?:(\\d+)m)?\\s?(?:(\\d+)s)?\\s?(?:(\\d+)ms)?"
             + "\\s?\\((\\d+) times\\) realtime";
@@ -57,21 +54,14 @@ public class WakelockParser implements IParser {
      */
     @Override
     public WakelockItem parse(List<String> lines) {
-        boolean inPartialWakeLock = false;
         Matcher m = null;
         int wakelockCounter = 0;
         for (String line : lines) {
             if ("".equals(line.trim())) {
-                if (inPartialWakeLock) {
-                    // Done with parsing wakelock sections
-                    break;
-                } else {
-                    // Done with parsing kernel wakelocks and continue with
-                    // partial wakelock
-                    wakelockCounter = 0;
-                    continue;
-                }
+                // Done with wakelock parsing
+                break;
             }
+
             m = KERNEL_WAKE_LOCK_PAT.matcher(line);
             if (m.matches()) {
                 if (wakelockCounter < TOP_WAKELOCK_COUNT &&
@@ -79,11 +69,6 @@ public class WakelockParser implements IParser {
                     parseKernelWakeLock(line, WakeLockCategory.KERNEL_WAKELOCK);
                     wakelockCounter++;
                 }
-                continue;
-            }
-            m = PARTIAL_WAKE_LOCK_START_PAT.matcher(line);
-            if (m.matches()) {
-                inPartialWakeLock = true;
                 continue;
             }
             m = PARTIAL_WAKE_LOCK_PAT.matcher(line);

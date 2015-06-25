@@ -34,7 +34,8 @@ import java.util.regex.Pattern;
 public class BatteryStatsDetailedInfoParser extends AbstractSectionParser {
 
     private static final String BATTERY_USAGE_SECTION_REGEX = "^\\s*Estimated power use \\(mAh\\):$";
-    private static final String WAKELOCK_SECTION_REGEX = "^\\s*All kernel wake locks:$";
+    private static final String KERNEL_WAKELOCK_SECTION_REGEX = "^\\s*All kernel wake locks:$";
+    private static final String PARTIAL_WAKELOCK_SECTION_REGEX = "^\\s*All partial wake locks:$";
     private static final String INTERRUPT_SECTION_REGEX = "^\\s*All wakeup reasons:$";
     private static final String PROCESS_USAGE_SECTION_REGEX = "^\\s*0:$";
 
@@ -127,7 +128,8 @@ public class BatteryStatsDetailedInfoParser extends AbstractSectionParser {
     protected void setup() {
         setParser(mBatteryTimeParser);
         addSectionParser(mBatteryUsageParser, BATTERY_USAGE_SECTION_REGEX);
-        addSectionParser(mWakelockParser, WAKELOCK_SECTION_REGEX);
+        addSectionParser(mWakelockParser, KERNEL_WAKELOCK_SECTION_REGEX);
+        addSectionParser(mWakelockParser, PARTIAL_WAKELOCK_SECTION_REGEX);
         addSectionParser(mInterruptParser, INTERRUPT_SECTION_REGEX);
         addSectionParser(mProcessUsageParser, PROCESS_USAGE_SECTION_REGEX);
     }

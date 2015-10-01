@@ -55,7 +55,7 @@ public class BugreportParser extends AbstractSectionParser {
             "------ (SYSTEM|MAIN|MAIN AND SYSTEM) LOG .*";
     private static final String ANR_TRACES_SECTION_REGEX = "------ VM TRACES AT LAST ANR .*";
     private static final String DUMPSYS_SECTION_REGEX = "------ DUMPSYS .*";
-    private static final String NOOP_SECTION_REGEX = "------ .*";
+    private static final String NOOP_SECTION_REGEX = "------ .* ------";
 
     private static final String BOOTREASON = "androidboot.bootreason";
 

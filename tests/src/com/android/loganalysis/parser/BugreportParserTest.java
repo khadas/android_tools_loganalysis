@@ -462,6 +462,55 @@ public class BugreportParserTest extends TestCase {
     }
 
     /**
+     * Test that section headers are correctly parsed.
+     */
+    public void testSectionHeader() {
+        List<String> lines = Arrays.asList(
+                "========================================================",
+                "== dumpstate: 2012-04-25 20:45:10",
+                "========================================================",
+                "------ DUMPSYS (dumpsys) ------",
+                "DUMP OF SERVICE SurfaceFlinger:",
+                "--DrmDisplayCompositor[0]: num_frames=1456 num_ms=475440 fps=3.06243",
+                "---- DrmDisplayCompositor Layers: num=3",
+                "------ DrmDisplayCompositor Layer: plane=17 crtc=20 crtc[x/y/w/h]=0/0/2560/1800",
+                "------ DrmDisplayCompositor Layer: plane=21 disabled",
+                "------ DrmDisplayCompositor Layer: plane=22 disabled",
+                "DUMP OF SERVICE batterystats:",
+                "Battery History (0% used, 1636 used of 256KB, 15 strings using 794):",
+                "    0 (15) RESET:TIME: 1970-01-10-06-23-28",
+                "          +45s702ms (2) 001 80080000 volt=4187",
+                "          +1m15s525ms (2) 001 80080000 temp=299 volt=4155",
+                "Statistics since last charged:",
+                "  Time on battery: 1h 5m 2s 4ms (9%) realtime, 1h 5m 2s 4ms (9%) uptime",
+                " Time on battery screen off: 1h 4m 5s 8ms (9%) realtime, 1h 4m 5s 8ms (9%) uptime",
+                " All kernel wake locks:",
+                " Kernel Wake lock PowerManagerService.WakeLocks: 5m 10s 6ms (2 times) realtime",
+                " Kernel Wake lock msm_serial_hs_rx: 2m 13s 612ms (258 times) realtime",
+                "",
+                "  All partial wake locks:",
+                "  Wake lock 1001 ProxyController: 1h 4m 47s 565ms (4 times) realtime",
+                "  Wake lock 1013 AudioMix: 1s 979ms (3 times) realtime",
+                "",
+                "  All wakeup reasons:",
+                "  Wakeup reason 2:bcmsdh_sdmmc:2:qcom,smd:2:msmgio: 1m 5s 4ms (2 times) realtime",
+                "  Wakeup reason 2:qcom,smd-rpm:2:fc4c.qcom,spmi: 7m 1s 914ms (7 times) realtime",
+                "DUMP OF SERVICE procstats:",
+                "COMMITTED STATS FROM 2015-09-30-07-44-54:",
+                "  * system / 1000 / v23:",
+                "           TOTAL: 100% (118MB-118MB-118MB/71MB-71MB-71MB over 1)",
+                "      Persistent: 100% (118MB-118MB-118MB/71MB-71MB-71MB over 1)",
+                " * com.android.phone / 1001 / v23:",
+                "           TOTAL: 6.7%",
+                "      Persistent: 6.7%",
+                "");
+        BugreportItem bugreport = new BugreportParser().parse(lines);
+        assertNotNull(bugreport.getDumpsys());
+        assertNotNull(bugreport.getDumpsys().getBatteryStats());
+        assertNotNull(bugreport.getDumpsys().getProcStats());
+    }
+
+    /**
      * Test that an empty input returns {@code null}.
      */
     public void testEmptyInput() {

@@ -176,6 +176,7 @@ public class KernelLogParser implements IParser {
             unknownReset.setEventTime(mStopTime);
             unknownReset.setPreamble(mPreambleUtil.getLastTail());
             unknownReset.setCategory(KERNEL_RESET);
+            unknownReset.setStack("Unknown reason");
             mKernelLog.addEvent(unknownReset);
         }
     }

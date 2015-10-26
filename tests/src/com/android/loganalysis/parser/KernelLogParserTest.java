@@ -114,6 +114,7 @@ public class KernelLogParserTest extends TestCase {
         MiscKernelLogItem item = kernelLog.getMiscEvents(KernelLogParser.KERNEL_RESET).get(0);
         assertEquals(2.0, item.getEventTime(), 0.0000005);
         assertEquals("[    0.000000] Start\n[    2.000000] End", item.getPreamble());
+        assertNotNull(item.getStack());
     }
 
     public void testParseKnownGoodLastMessage() {

@@ -49,8 +49,16 @@ public class KernelLogParser implements IParser {
      * Regular expression representing all known bootreasons which are bad.
      */
     public static final Pattern BAD_BOOTREASONS = Pattern.compile(
-            "(?:kernel_panic|rpm_err|hw_reset(?:$|\\n)|wdog_.*|tz_err|adsp_err|modem_err|mba_err|"
-            + "watchdogr?|Watchdog|Panic|srto:.*)");
+            "(?:kernel_panic.*|rpm_err|hw_reset(?:$|\\n)|wdog_.*|tz_err|adsp_err|modem_err|mba_err|"
+            + "watchdog.*|Watchdog|Panic|srto:.*|oemerr.*)");
+
+    /**
+     * Regular expression representing all known bootreasons which are good.
+     */
+    public static final Pattern GOOD_BOOTREASONS = Pattern.compile(
+            "(?:PowerKey|normal|recovery|reboot.*)");
+
+    private boolean mAddUnknownBootreason = true;
 
     private KernelLogItem mKernelLog = null;
     private Double mStartTime = null;
@@ -58,10 +66,14 @@ public class KernelLogParser implements IParser {
 
     private LogPatternUtil mPatternUtil = new LogPatternUtil();
     private LogTailUtil mPreambleUtil = new LogTailUtil(500, 50, 50);
-    private boolean mRebootReasonFound = false;
+    private boolean mBootreasonFound = false;
 
     public KernelLogParser() {
         initPatterns();
+    }
+
+    public void setAddUnknownBootreason(boolean enable) {
+        mAddUnknownBootreason = enable;
     }
 
     /**
@@ -87,7 +99,7 @@ public class KernelLogParser implements IParser {
      */
     @Override
     public KernelLogItem parse(List<String> lines) {
-        mRebootReasonFound = false;
+        mBootreasonFound = false;
         for (String line : lines) {
             parseLine(line);
         }
@@ -136,7 +148,7 @@ public class KernelLogParser implements IParser {
         }
 
         if (category.equals(KERNEL_RESET) || category.equals(NORMAL_REBOOT)) {
-            mRebootReasonFound = true;
+            mBootreasonFound = true;
         }
 
         if (category.equals(NORMAL_REBOOT)) {
@@ -171,7 +183,7 @@ public class KernelLogParser implements IParser {
         mKernelLog.setStartTime(mStartTime);
         mKernelLog.setStopTime(mStopTime);
 
-        if (!mRebootReasonFound) {
+        if (mAddUnknownBootreason && !mBootreasonFound) {
             MiscKernelLogItem unknownReset = new MiscKernelLogItem();
             unknownReset.setEventTime(mStopTime);
             unknownReset.setPreamble(mPreambleUtil.getLastTail());
@@ -204,7 +216,7 @@ public class KernelLogParser implements IParser {
         final String[] goodSignatures = {
                 "Restarting system.*",
                 "Power down.*",
-                "Last boot reason: (?:PowerKey|normal|recovery|reboot)",
+                "Last boot reason: " + GOOD_BOOTREASONS,
         };
         for (String pattern : kernelResets) {
             mPatternUtil.addPattern(Pattern.compile(pattern), KERNEL_RESET);

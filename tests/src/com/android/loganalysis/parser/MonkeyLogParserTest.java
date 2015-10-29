@@ -442,7 +442,7 @@ public class MonkeyLogParserTest extends TestCase {
         assertEquals("google/mantaray/manta:4.1/JRO01/12345:userdebug/dev-keys",
                 ((NativeCrashItem) monkeyLog.getCrash()).getFingerprint());
         // Make sure that the entire stack is included.
-        assertEquals(24, ((NativeCrashItem) monkeyLog.getCrash()).getStack().split("\n").length);
+        assertEquals(23, ((NativeCrashItem) monkeyLog.getCrash()).getStack().split("\n").length);
     }
 
     /**
@@ -537,7 +537,7 @@ public class MonkeyLogParserTest extends TestCase {
         assertEquals("google/mantaray/manta:4.1/JRO01/12345:userdebug/dev-keys",
                 nc.getFingerprint());
         // Make sure that the stack with the last line stripped is included.
-        assertEquals(24, nc.getStack().split("\n").length);
+        assertEquals(23, nc.getStack().split("\n").length);
         assertFalse(nc.getStack().contains("New native crash detected"));
     }
 

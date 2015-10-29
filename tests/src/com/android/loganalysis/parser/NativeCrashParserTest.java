@@ -33,7 +33,6 @@ public class NativeCrashParserTest extends TestCase {
      */
     public void testParseage() {
         List<String> lines = Arrays.asList(
-                "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
                 "Build fingerprint: 'google/soju/crespo:4.0.4/IMM76D/299849:userdebug/test-keys'",
                 "pid: 2058, tid: 2523  >>> com.google.android.browser <<<",
                 "signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 00000000",

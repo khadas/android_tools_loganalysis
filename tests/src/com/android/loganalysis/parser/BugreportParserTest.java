@@ -238,7 +238,11 @@ public class BugreportParserTest extends TestCase {
                 "Command line: androidboot.bootreason=reboot",
                 "");
         BugreportItem bugreport = new BugreportParser().parse(lines);
-        assertNull(bugreport.getLastKmsg());
+        assertNotNull(bugreport.getLastKmsg());
+        assertEquals(1, bugreport.getLastKmsg().getEvents().size());
+        assertEquals("Last boot reason: reboot",
+                bugreport.getLastKmsg().getEvents().get(0).getStack());
+        assertEquals("NORMAL_REBOOT", bugreport.getLastKmsg().getEvents().get(0).getCategory());
     }
 
     public void testParse_bootreason_bad() {
@@ -420,12 +424,12 @@ public class BugreportParserTest extends TestCase {
         assertNotNull(bugreport);
         assertNull(bugreport.getDumpsys());
         assertNull(bugreport.getKernelLog());
-        assertNull(bugreport.getLastKmsg());
         assertNull(bugreport.getMemInfo());
         assertNull(bugreport.getProcrank());
         assertNull(bugreport.getSystemLog());
         assertNull(bugreport.getSystemProps());
         assertNull(bugreport.getTop());
+        assertNotNull(bugreport.getLastKmsg());
 
         lines = Arrays.asList(
                 "========================================================",
@@ -453,12 +457,12 @@ public class BugreportParserTest extends TestCase {
         assertNotNull(bugreport);
         assertNotNull(bugreport.getDumpsys());
         assertNull(bugreport.getKernelLog());
-        assertNull(bugreport.getLastKmsg());
         assertNull(bugreport.getMemInfo());
         assertNull(bugreport.getProcrank());
         assertNull(bugreport.getSystemLog());
         assertNull(bugreport.getSystemProps());
         assertNull(bugreport.getTop());
+        assertNotNull(bugreport.getLastKmsg());
     }
 
     /**

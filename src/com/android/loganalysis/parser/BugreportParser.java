@@ -175,6 +175,8 @@ public class BugreportParser extends AbstractSectionParser {
         addSectionParser(mLastKmsgParser, LAST_KMSG_SECTION_REGEX);
         addSectionParser(mDumpsysParser, DUMPSYS_SECTION_REGEX);
         addSectionParser(new NoopParser(), NOOP_SECTION_REGEX);
+        mKernelLogParser.setAddUnknownBootreason(false);
+        mLastKmsgParser.setAddUnknownBootreason(false);
     }
 
     /**
@@ -218,18 +220,35 @@ public class BugreportParser extends AbstractSectionParser {
                         traces.getStack());
             }
 
+            KernelLogItem lastKmsg = mBugreport.getLastKmsg();
+            if (lastKmsg == null) {
+                lastKmsg = new KernelLogItem();
+                mBugreport.setLastKmsg(lastKmsg);
+            }
             if (mCommandLine.containsKey(BOOTREASON)) {
                 String bootreason = mCommandLine.get(BOOTREASON);
                 Matcher m = KernelLogParser.BAD_BOOTREASONS.matcher(bootreason);
                 if (m.matches()) {
-                    if (mBugreport.getLastKmsg() == null) {
-                        mBugreport.setLastKmsg(new KernelLogItem());
-                    }
                     MiscKernelLogItem item = new MiscKernelLogItem();
                     item.setStack("Last boot reason: " + bootreason.trim());
                     item.setCategory(KernelLogParser.KERNEL_RESET);
-                    mBugreport.getLastKmsg().addEvent(item);
+                    lastKmsg.addEvent(item);
                 }
+                m = KernelLogParser.GOOD_BOOTREASONS.matcher(bootreason);
+                if (m.matches()) {
+                    MiscKernelLogItem item = new MiscKernelLogItem();
+                    item.setStack("Last boot reason: " + bootreason.trim());
+                    item.setCategory(KernelLogParser.NORMAL_REBOOT);
+                    lastKmsg.addEvent(item);
+                }
+            }
+
+            if (lastKmsg.getMiscEvents(KernelLogParser.KERNEL_RESET).isEmpty() &&
+                    lastKmsg.getMiscEvents(KernelLogParser.NORMAL_REBOOT).isEmpty()) {
+                MiscKernelLogItem unknownReset = new MiscKernelLogItem();
+                unknownReset.setStack("Unknown reason");
+                unknownReset.setCategory(KernelLogParser.KERNEL_RESET);
+                lastKmsg.addEvent(unknownReset);
             }
         }
     }

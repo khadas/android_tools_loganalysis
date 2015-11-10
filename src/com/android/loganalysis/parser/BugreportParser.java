@@ -57,7 +57,8 @@ public class BugreportParser extends AbstractSectionParser {
     private static final String DUMPSYS_SECTION_REGEX = "------ DUMPSYS .*";
     private static final String NOOP_SECTION_REGEX = "------ .* ------";
 
-    private static final String BOOTREASON = "androidboot.bootreason";
+    private static final String BOOTREASON_PROP = "ro.boot.bootreason";
+    private static final String BOOTREASON_KERNEL = "androidboot.bootreason";
 
     /**
      * Matches: == dumpstate: 2012-04-26 12:13:14
@@ -225,8 +226,14 @@ public class BugreportParser extends AbstractSectionParser {
                 lastKmsg = new KernelLogItem();
                 mBugreport.setLastKmsg(lastKmsg);
             }
-            if (mCommandLine.containsKey(BOOTREASON)) {
-                String bootreason = mCommandLine.get(BOOTREASON);
+            String bootreason = null;
+            if (mBugreport.getSystemProps() != null &&
+                    mBugreport.getSystemProps().containsKey(BOOTREASON_PROP)) {
+                bootreason = mBugreport.getSystemProps().get(BOOTREASON_PROP);
+            } else if (mCommandLine.containsKey(BOOTREASON_KERNEL)) {
+                bootreason = mCommandLine.get(BOOTREASON_KERNEL);
+            }
+            if (bootreason != null) {
                 Matcher m = KernelLogParser.BAD_BOOTREASONS.matcher(bootreason);
                 if (m.matches()) {
                     MiscKernelLogItem item = new MiscKernelLogItem();

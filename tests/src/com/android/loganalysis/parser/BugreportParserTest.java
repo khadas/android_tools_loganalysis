@@ -17,6 +17,7 @@ package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.IItem;
+import com.android.loganalysis.item.MiscKernelLogItem;
 import com.android.loganalysis.util.ArrayUtil;
 
 import junit.framework.TestCase;
@@ -228,9 +229,9 @@ public class BugreportParserTest extends TestCase {
     }
 
     /**
-     * Test
+     * Test that a normal boot triggers a normal boot event and no unknown reason.
      */
-    public void testParse_bootreason_good() {
+    public void testParse_bootreason_kernel_good() {
         List<String> lines = Arrays.asList(
                 "========================================================",
                 "== dumpstate: 1999-01-01 02:03:04",
@@ -245,7 +246,10 @@ public class BugreportParserTest extends TestCase {
         assertEquals("NORMAL_REBOOT", bugreport.getLastKmsg().getEvents().get(0).getCategory());
     }
 
-    public void testParse_bootreason_bad() {
+    /**
+     * Test that a kernel reset boot triggers a kernel reset event and no unknown reason.
+     */
+    public void testParse_bootreason_kernel_bad() {
         List<String> lines = Arrays.asList(
                 "========================================================",
                 "== dumpstate: 1999-01-01 02:03:04",
@@ -260,12 +264,56 @@ public class BugreportParserTest extends TestCase {
         assertEquals("KERNEL_RESET", bugreport.getLastKmsg().getEvents().get(0).getCategory());
     }
 
+    /**
+     * Test that a normal boot triggers a normal boot event and no unknown reason.
+     */
+    public void testParse_bootreason_prop_good() {
+        List<String> lines = Arrays.asList(
+                "========================================================",
+                "== dumpstate: 1999-01-01 02:03:04",
+                "========================================================",
+                "------ SYSTEM PROPERTIES ------",
+                "[ro.boot.bootreason]: [reboot]",
+                "");
+        BugreportItem bugreport = new BugreportParser().parse(lines);
+        assertNotNull(bugreport.getLastKmsg());
+        assertEquals(1, bugreport.getLastKmsg().getEvents().size());
+        assertEquals("Last boot reason: reboot",
+                bugreport.getLastKmsg().getEvents().get(0).getStack());
+        assertEquals("NORMAL_REBOOT", bugreport.getLastKmsg().getEvents().get(0).getCategory());
+    }
+
+    /**
+     * Test that a kernel reset boot triggers a kernel reset event and no unknown reason.
+     */
+    public void testParse_bootreason_prop_bad() {
+        List<String> lines = Arrays.asList(
+                "========================================================",
+                "== dumpstate: 1999-01-01 02:03:04",
+                "========================================================",
+                "------ SYSTEM PROPERTIES ------",
+                "[ro.boot.bootreason]: [hw_reset]",
+                "");
+        BugreportItem bugreport = new BugreportParser().parse(lines);
+        assertNotNull(bugreport.getLastKmsg());
+        assertEquals(1, bugreport.getLastKmsg().getEvents().size());
+        assertEquals("Last boot reason: hw_reset",
+                bugreport.getLastKmsg().getEvents().get(0).getStack());
+        assertEquals("KERNEL_RESET", bugreport.getLastKmsg().getEvents().get(0).getCategory());
+    }
+
+    /**
+     * Test that a kernel panic in the last kmsg and a kernel panic only triggers one kernel reset.
+     */
     public void testParse_bootreason_duplicate() {
         List<String> lines = Arrays.asList(
                 "========================================================",
                 "== dumpstate: 1999-01-01 02:03:04",
                 "========================================================",
                 "Command line: androidboot.bootreason=hw_reset",
+                "------ SYSTEM PROPERTIES ------",
+                "[ro.boot.bootreason]: [hw_reset]",
+                "",
                 "------ LAST KMSG (/proc/last_kmsg) ------",
                 "[    0.000000] Initializing cgroup subsys cpu",
                 "[   16.203491] Kernel panic",
@@ -430,6 +478,10 @@ public class BugreportParserTest extends TestCase {
         assertNull(bugreport.getSystemProps());
         assertNull(bugreport.getTop());
         assertNotNull(bugreport.getLastKmsg());
+        List<MiscKernelLogItem> events = bugreport.getLastKmsg().getMiscEvents(
+                KernelLogParser.KERNEL_RESET);
+        assertEquals(events.size(), 1);
+        assertEquals(events.get(0).getStack(), "Unknown reason");
 
         lines = Arrays.asList(
                 "========================================================",
@@ -463,6 +515,9 @@ public class BugreportParserTest extends TestCase {
         assertNull(bugreport.getSystemProps());
         assertNull(bugreport.getTop());
         assertNotNull(bugreport.getLastKmsg());
+        events = bugreport.getLastKmsg().getMiscEvents(KernelLogParser.KERNEL_RESET);
+        assertEquals(events.size(), 1);
+        assertEquals(events.get(0).getStack(), "Unknown reason");
     }
 
     /**

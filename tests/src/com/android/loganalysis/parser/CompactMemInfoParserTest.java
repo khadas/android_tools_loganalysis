@@ -26,9 +26,9 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.List;
 
-public class CompactMemInfoTest extends TestCase {
+public class CompactMemInfoParserTest extends TestCase {
 
-    public void testSingleLine() {
+    public void testSingleProcLine() {
         List<String> input = Arrays.asList("proc,cached,com.google.android.youtube,2964,19345,e");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
@@ -40,8 +40,17 @@ public class CompactMemInfoTest extends TestCase {
         assertEquals(false, item.hasActivities(2964));
     }
 
-    public void testMalformedLine() {
-        List<String> input = Arrays.asList("proc,cached,com.google.android.youtube,a,b,e");
+    public void testSingleLostRamLine() {
+        List<String> input = Arrays.asList("lostram,1005");
+        CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
+        assertEquals(1005, item.getLostRam());
+    }
+
+    public void testSomeMalformedLines() {
+        List<String> input = Arrays.asList(
+                "proc,cached,com.google.android.youtube,a,b,e",
+                "lostram,a,1000",
+                "lostram,1000,a");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
 
@@ -54,7 +63,8 @@ public class CompactMemInfoTest extends TestCase {
                 "proc,cached,com.google.android.apps.plus,2877,9604,e",
                 "proc,cached,com.google.android.apps.magazines,2009,20111,e",
                 "proc,cached,com.google.android.apps.walletnfcrel,10790,11164,e",
-                "proc,cached,com.google.android.incallui,3410,9491,e");
+                "proc,cached,com.google.android.incallui,3410,9491,e",
+                "lostram,1005");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
 
@@ -63,6 +73,8 @@ public class CompactMemInfoTest extends TestCase {
         assertEquals(19345, item.getPss(2964));
         assertEquals("cached", item.getType(2964));
         assertEquals(false, item.hasActivities(2964));
+
+        assertEquals(1005, item.getLostRam());
     }
 
     public void testSkipNonProcLines() {
@@ -94,6 +106,7 @@ public class CompactMemInfoTest extends TestCase {
                 "proc,cached,com.google.android.apps.magazines,2009,20111,e",
                 "proc,cached,com.google.android.apps.walletnfcrel,10790,11164,e",
                 "proc,cached,com.google.android.incallui,3410,9491,e",
+                "lostram,1005",
                 "cat,Native,63169");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
@@ -102,5 +115,7 @@ public class CompactMemInfoTest extends TestCase {
 
         JSONArray processes = json.getJSONArray("processes");
         assertEquals(5, processes.length());
+
+        assertEquals(1005, (long)json.get("lostRam"));
     }
 }

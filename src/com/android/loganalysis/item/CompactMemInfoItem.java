@@ -28,7 +28,22 @@ import java.util.Set;
  * compact mem info file. Refer to CompactMemInfoParser for more details.
  */
 public class CompactMemInfoItem implements IItem {
+    /** Constants for JSON output */
+    public static final String PID_JSON_KEY = "pid";
+    public static final String NAME_JSON_KEY = "name";
+    public static final String PSS_JSON_KEY = "pss";
+    public static final String TYPE_JSON_KEY = "type";
+    public static final String ACTIVITIES_JSON_KEY = "activities";
+    public static final String PROCESSES_JSON_KEY = "processes";
+    public static final String LOST_RAM_JSON_KEY = "lostRam";
+    /** Constants for attributes HashMap */
+    private static final String NAME_ATTR_KEY = "name";
+    private static final String PSS_ATTR_KEY = "pss";
+    private static final String TYPE_ATTR_KEY = "type";
+    private static final String ACTIVITIES_ATTR_KEY = "activities";
+
     private Map<Integer, Map<String, Object>> mPids = new HashMap<Integer, Map<String, Object>>();
+    private long mLostRam;
 
     @Override
     public IItem merge(IItem other) throws ConflictingItemException {
@@ -44,24 +59,28 @@ public class CompactMemInfoItem implements IItem {
     public JSONObject toJson() {
         JSONObject object = new JSONObject();
         JSONArray processes = new JSONArray();
+        // Add processes and their attributes
         for(int pid : getPids()) {
             JSONObject proc = new JSONObject();
             try {
-                proc.put("pid", pid);
-                proc.put("name", getName(pid));
-                proc.put("pss", getPss(pid));
-                proc.put("type", getType(pid));
-                proc.put("activities", hasActivities(pid));
+                proc.put(PID_JSON_KEY, pid);
+                proc.put(NAME_JSON_KEY, getName(pid));
+                proc.put(PSS_JSON_KEY, getPss(pid));
+                proc.put(TYPE_JSON_KEY, getType(pid));
+                proc.put(ACTIVITIES_JSON_KEY, hasActivities(pid));
                 processes.put(proc);
             } catch (JSONException e) {
                 // ignore
             }
         }
         try {
-            object.put("processes", processes);
+            object.put(PROCESSES_JSON_KEY, processes);
+            // Add the lost RAM field
+            object.put(LOST_RAM_JSON_KEY, getLostRam());
         } catch (JSONException e) {
             // ignore
         }
+
         return object;
     }
 
@@ -82,10 +101,10 @@ public class CompactMemInfoItem implements IItem {
      */
     public void addPid(int pid, String name, String type, long pss, boolean activities) {
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put("name", name);
-        attributes.put("type", type);
-        attributes.put("pss", pss);
-        attributes.put("activities", activities);
+        attributes.put(NAME_ATTR_KEY, name);
+        attributes.put(TYPE_ATTR_KEY, type);
+        attributes.put(PSS_ATTR_KEY, pss);
+        attributes.put(ACTIVITIES_ATTR_KEY, activities);
         mPids.put(pid, attributes);
     }
 
@@ -93,14 +112,14 @@ public class CompactMemInfoItem implements IItem {
      * Returns the name of the process with a given pid.
      */
     public String getName(int pid) {
-        return (String)get(pid).get("name");
+        return (String)get(pid).get(NAME_ATTR_KEY);
     }
 
     /**
      * Return pss of the process with a given name.
      */
     public long getPss(int pid) {
-        return (Long)get(pid).get("pss");
+        return (Long)get(pid).get(PSS_ATTR_KEY);
     }
 
     /**
@@ -108,13 +127,27 @@ public class CompactMemInfoItem implements IItem {
      * foreground and etc.
      */
     public String getType(int pid) {
-        return (String)get(pid).get("type");
+        return (String)get(pid).get(TYPE_ATTR_KEY);
     }
 
     /**
      * Returns true if a process has any activities assosiated with it. False otherwise.
      */
     public boolean hasActivities(int pid) {
-        return (Boolean)get(pid).get("activities");
+        return (Boolean)get(pid).get(ACTIVITIES_ATTR_KEY);
+    }
+
+    /**
+     * Sets the lost RAM field
+     */
+    public void setLostRam(long lostRam) {
+        mLostRam = lostRam;
+    }
+
+    /**
+     * Returns the lost RAM field
+     */
+    public long getLostRam() {
+        return mLostRam;
     }
 }

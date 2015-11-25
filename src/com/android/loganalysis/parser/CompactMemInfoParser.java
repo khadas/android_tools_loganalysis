@@ -17,6 +17,7 @@ package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.CompactMemInfoItem;
 
+import java.lang.NumberFormatException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,9 +37,10 @@ import java.util.regex.Pattern;
  *
  */
 public class CompactMemInfoParser implements IParser {
-
     private static final Pattern PROC_PREFIX = Pattern.compile(
             "proc,(.+),(.+),(\\d+),(\\d+),(.?)");
+    private static final Pattern LOST_RAM_PREFIX = Pattern.compile(
+            "lostram,(.+)");
 
     /**
      * Parse compact meminfo log. Output a CompactMemInfoItem which contains
@@ -49,16 +51,31 @@ public class CompactMemInfoParser implements IParser {
         CompactMemInfoItem item = new CompactMemInfoItem();
         for (String line : lines) {
             Matcher m = PROC_PREFIX.matcher(line);
-            if (!m.matches()) continue;
+            if (m.matches()) {
+                String type = m.group(1);
+                String name = m.group(2);
+                try {
+                    int pid = Integer.parseInt(m.group(3));
+                    long pss = Long.parseLong(m.group(4));
+                    boolean activities = "a".equals(m.group(5));
+                    item.addPid(pid, name, type, pss, activities);
+                    continue;
+                } catch (NumberFormatException nfe) {
+                    // ignore exception
+                }
+            }
 
-            if (m.groupCount() != 5) continue;
-
-            String type = m.group(1);
-            String name = m.group(2);
-            int pid = Integer.parseInt(m.group(3));
-            long pss = Long.parseLong(m.group(4));
-            boolean activities = "a".equals(m.group(5));
-            item.addPid(pid, name, type, pss, activities);
+            m = LOST_RAM_PREFIX.matcher(line);
+            if (m.matches()) {
+                String name = "Lost RAM";
+                try {
+                    long lostRam = Long.parseLong(m.group(1));
+                    item.setLostRam(lostRam);
+                    continue;
+                } catch (NumberFormatException nfe) {
+                    // ignore exception
+                }
+            }
         }
         return item;
     }

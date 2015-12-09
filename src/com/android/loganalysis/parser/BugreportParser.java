@@ -15,6 +15,7 @@
  */
 package com.android.loganalysis.parser;
 
+import com.android.loganalysis.item.ActivityServiceItem;
 import com.android.loganalysis.item.AnrItem;
 import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.BugreportItem.CommandLineItem;
@@ -55,6 +56,8 @@ public class BugreportParser extends AbstractSectionParser {
             "------ (SYSTEM|MAIN|MAIN AND SYSTEM) LOG .*";
     private static final String ANR_TRACES_SECTION_REGEX = "------ VM TRACES AT LAST ANR .*";
     private static final String DUMPSYS_SECTION_REGEX = "------ DUMPSYS .*";
+    private static final String ACTIVITY_SERVICE_SECTION_REGEX =
+            "^------ APP SERVICES \\(dumpsys activity service all\\) ------$";
     private static final String NOOP_SECTION_REGEX = "------ .* ------";
 
     private static final String BOOTREASON_PROP = "ro.boot.bootreason";
@@ -112,6 +115,7 @@ public class BugreportParser extends AbstractSectionParser {
     private KernelLogParser mLastKmsgParser = new KernelLogParser();
     private LogcatParser mLogcatParser = new LogcatParser();
     private DumpsysParser mDumpsysParser = new DumpsysParser();
+    private ActivityServiceParser mActivityServiceParser =  new ActivityServiceParser();
 
     private BugreportItem mBugreport = null;
     private CommandLineItem mCommandLine = new CommandLineItem();
@@ -175,6 +179,7 @@ public class BugreportParser extends AbstractSectionParser {
         addSectionParser(mKernelLogParser, KERNEL_LOG_SECTION_REGEX);
         addSectionParser(mLastKmsgParser, LAST_KMSG_SECTION_REGEX);
         addSectionParser(mDumpsysParser, DUMPSYS_SECTION_REGEX);
+        addSectionParser(mActivityServiceParser, ACTIVITY_SERVICE_SECTION_REGEX);
         addSectionParser(new NoopParser(), NOOP_SECTION_REGEX);
         mKernelLogParser.setAddUnknownBootreason(false);
         mLastKmsgParser.setAddUnknownBootreason(false);
@@ -202,6 +207,7 @@ public class BugreportParser extends AbstractSectionParser {
             mBugreport.setLastKmsg((KernelLogItem) getSection(mLastKmsgParser));
             mBugreport.setSystemProps((SystemPropsItem) getSection(mSystemPropsParser));
             mBugreport.setDumpsys((DumpsysItem) getSection(mDumpsysParser));
+            mBugreport.setActivityService((ActivityServiceItem) getSection(mActivityServiceParser));
 
             if (mBugreport.getSystemLog() != null && mBugreport.getProcrank() != null) {
                 for (IItem item : mBugreport.getSystemLog().getEvents()) {

@@ -45,10 +45,12 @@ public class BugreportItem extends GenericItem {
     public static final String SYSTEM_PROPS = "SYSTEM_PROPS";
     /** Constant for JSON output */
     public static final String DUMPSYS = "DUMPSYS";
+    /** Constant for JSON output */
+    public static final String ACTIVITY_SERVICE = "ACTIVITY_SERVICE";
 
     private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(
             TIME, COMMAND_LINE, MEM_INFO, PROCRANK, TOP, KERNEL_LOG, LAST_KMSG, SYSTEM_LOG,
-            SYSTEM_PROPS, DUMPSYS));
+            SYSTEM_PROPS, DUMPSYS, ACTIVITY_SERVICE));
 
     public static class CommandLineItem extends GenericMapItem<String> {
         private static final long serialVersionUID = 0L;
@@ -199,5 +201,18 @@ public class BugreportItem extends GenericItem {
      */
     public void setDumpsys(DumpsysItem dumpsys) {
         setAttribute(DUMPSYS, dumpsys);
+    }
+    /**
+     * Get the {@link ActivityServiceItem} of the bugreport.
+     */
+    public ActivityServiceItem getActivityService() {
+        return (ActivityServiceItem) getAttribute(ACTIVITY_SERVICE);
+    }
+
+    /**
+     * Set the {@link ActivityServiceItem} of the bugreport.
+     */
+    public void setActivityService(ActivityServiceItem activityService) {
+        setAttribute(ACTIVITY_SERVICE, activityService);
     }
 }

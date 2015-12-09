@@ -18,10 +18,17 @@ package com.android.loganalysis.parser;
 import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.IItem;
 import com.android.loganalysis.item.MiscKernelLogItem;
+import com.android.loganalysis.rule.RuleEngine;
+import com.android.loganalysis.rule.RuleEngine.RuleType;
 import com.android.loganalysis.util.ArrayUtil;
 
 import junit.framework.TestCase;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -138,7 +145,20 @@ public class BugreportParserTest extends TestCase {
                 "  All wakeup reasons:",
                 "  Wakeup reason 2:bcmsdh_sdmmc:2:qcom,smd:2:msmgio: 1m 5s 4ms (2 times) realtime",
                 "  Wakeup reason 2:qcom,smd-rpm:2:fc4c.qcom,spmi: 7m 1s 914ms (7 times) realtime",
-                "");
+                "",
+                "========================================================",
+                "== Running Application Services",
+                "========================================================",
+                "------ APP SERVICES (dumpsys activity service all) ------",
+                "SERVICE com.google.android.gms/"
+                + "com.google.android.location.internal.GoogleLocationManagerService f4c9d pid=14",
+                " Location Request History By Package:",
+                "Interval effective/min/max 1/0/0[s] Duration: 140[minutes] ["
+                + "com.google.android.gms, PRIORITY_NO_POWER, UserLocationProducer] "
+                + "Num requests: 2 Active: true",
+                "Interval effective/min/max 284/285/3600[s] Duration: 140[minutes] "
+                + "[com.google.android.googlequicksearchbox, PRIORITY_BALANCED_POWER_ACCURACY] "
+                + "Num requests: 5 Active: true");
 
         BugreportItem bugreport = new BugreportParser().parse(lines);
         assertNotNull(bugreport);
@@ -171,6 +191,11 @@ public class BugreportParserTest extends TestCase {
 
         assertNotNull(bugreport.getDumpsys());
         assertNotNull(bugreport.getDumpsys().getBatteryStats());
+
+        assertNotNull(bugreport.getActivityService());
+        assertNotNull(bugreport.getActivityService().getLocationDumps().getLocationClients());
+        assertEquals(bugreport.getActivityService().getLocationDumps().getLocationClients().size(),
+                2);
     }
 
     /**

@@ -66,5 +66,6 @@ public class RuleEngine {
     private void addPowerRules() {
         mRulesList.add(new WakelockRule(mBugreportItem));
         mRulesList.add(new ProcessUsageRule(mBugreportItem));
+        mRulesList.add(new LocationUsageRule(mBugreportItem));
     }
 }

@@ -28,9 +28,11 @@ public class DumpsysItem extends GenericItem {
     private static final String BATTERY_STATS = "BATTERY_STATS";
     /** Constant for JSON output */
     private static final String PROC_STATS = "PROC_STATS";
+    /** Constant for JSON output */
+    private static final String WIFI_STATS = "WIFI_STATS";
 
     private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(
-            BATTERY_STATS, PROC_STATS));
+            BATTERY_STATS, PROC_STATS, WIFI_STATS));
 
     /**
      * The constructor for {@link DumpsysItem}.
@@ -54,6 +56,13 @@ public class DumpsysItem extends GenericItem {
     }
 
     /**
+     * Set the {@link DumpsysWifiStatsItem} of the bugreport.
+     */
+    public void setWifiStats(DumpsysWifiStatsItem wifiStats) {
+        setAttribute(WIFI_STATS, wifiStats);
+    }
+
+    /**
      * Get the {@link DumpsysBatteryStatsItem} of the bugreport.
      */
     public DumpsysBatteryStatsItem getBatteryStats() {
@@ -65,5 +74,12 @@ public class DumpsysItem extends GenericItem {
      */
     public DumpsysProcStatsItem getProcStats() {
         return (DumpsysProcStatsItem) getAttribute(PROC_STATS);
+    }
+
+    /**
+     * Get the {@link DumpsysWifiStatsItem} of the bugreport.
+     */
+    public DumpsysWifiStatsItem getWifiStats() {
+        return (DumpsysWifiStatsItem) getAttribute(WIFI_STATS);
     }
 }

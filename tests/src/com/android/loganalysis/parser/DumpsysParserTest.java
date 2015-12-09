@@ -92,11 +92,38 @@ public class DumpsysParserTest extends TestCase {
                 "      Persistent: 100% (159MB-160MB-161MB/153MB-153MB-154MB over 13)",
                 "  * com.google.process.gapps / u0a9 / v22:",
                 "           TOTAL: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)",
-                "          Imp Fg: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)");
+                "          Imp Fg: 100% (22MB-24MB-25MB/18MB-19MB-20MB over 13)",
+                "DUMP OF SERVICE wifi:",
+                "Wi-Fi is enabled",
+                "rec[0]: time=10-09 00:25:16.737 processed=DefaultState org=DeviceActiveState "
+                + "dest=<null> what=155654(0x26006)",
+                "mScreenOff true",
+                " rec[0]: time=10-08 16:49:55.034 processed=WatchdogEnabledState org=OnlineState "
+                + "dest=OnlineWatchState what=135170(0x21002)",
+                "rec[30]: time=10-08 13:06:50.379 processed=DriverStartedState org=ConnectedState "
+                + "dest=<null> what=131143(0x20047) (1)CMD_START_SCAN  rt=4720806/7884852 10013 51 "
+                + "ic=0 proc(ms):14 onGoing full started:1444334810368,11 cnt=24 rssi=-127 f=-1 "
+                + "sc=0 link=-1 tx=1.5, 1.7, 0.0  rx=8.4 fiv=20000 [on:3266 tx:65 rx:556 "
+                + "period:1268] from screen [on:266962 period:266959]",
+                "rec[357]: time=10-08 13:10:13.199 processed=DriverStartedState org=ConnectedState "
+                + "dest=<null> what=131143(0x20047) (-2)CMD_START_SCAN  rt=4923625/8087671 10013 "
+                + "175 ic=0 proc(ms):2 onGoing full started:1444335011199,1999 cnt=24 rssi=-127 "
+                + "f=-1 sc=0 link=-1 tx=8.4, 1.7, 0.0  rx=6.7 fiv=20000 [on:0 tx:0 rx:0 period:990]"
+                + "from screen [on:467747 period:469779]",
+                "WifiConfigStore - Log Begin ----",
+                "10-08 11:09:14.653 - Event [IFNAME=wlan0 CTRL-EVENT-SCAN-STARTED ]",
+                "10-08 13:06:29.489 - Event [IFNAME=wlan0 CTRL-EVENT-DISCONNECTED "
+                + "bssid=9c:1c:12:c3:d0:72 reason=0]",
+                "10-08 13:06:22.280 - Event [IFNAME=wlan0 CTRL-EVENT-SCAN-STARTED ]",
+                "10-08 13:06:25.363 - Event [IFNAME=wlan0 CTRL-EVENT-SCAN-STARTED ]",
+                "10-08 13:08:15.018 - Event [IFNAME=wlan0 CTRL-EVENT-DISCONNECTED "
+                + "bssid=9c:1c:12:e8:72:d2 reason=3 locally_generated=1]",
+                "10-08 13:08:15.324 - wlan0: 442:IFNAME=wlan0 ENABLE_NETWORK 0 -> true");
 
         DumpsysItem dumpsys = new DumpsysParser().parse(inputBlock);
         assertNotNull(dumpsys.getBatteryStats());
         assertNotNull(dumpsys.getProcStats());
+        assertNotNull(dumpsys.getWifiStats());
     }
 }
 

@@ -67,5 +67,6 @@ public class RuleEngine {
         mRulesList.add(new WakelockRule(mBugreportItem));
         mRulesList.add(new ProcessUsageRule(mBugreportItem));
         mRulesList.add(new LocationUsageRule(mBugreportItem));
+        mRulesList.add(new WifiStatsRule(mBugreportItem));
     }
 }

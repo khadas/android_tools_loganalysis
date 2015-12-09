@@ -20,6 +20,7 @@ import com.android.loganalysis.item.BatteryStatsDetailedInfoItem;
 import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.BatteryStatsSummaryInfoItem;
 import com.android.loganalysis.item.DumpsysProcStatsItem;
+import com.android.loganalysis.item.DumpsysWifiStatsItem;
 
 import org.json.JSONObject;
 
@@ -32,6 +33,7 @@ public abstract class AbstractPowerRule implements IRule {
     private BatteryStatsSummaryInfoItem mPowerSummaryAnalysisItem;
     private BatteryStatsDetailedInfoItem mPowerDetailedAnalysisItem;
     private DumpsysProcStatsItem mProcStatsItem;
+    private DumpsysWifiStatsItem mWifiStatsItem;
 
     public AbstractPowerRule(BugreportItem bugreportItem) {
         mBugreportItem = bugreportItem;
@@ -40,6 +42,7 @@ public abstract class AbstractPowerRule implements IRule {
         mPowerDetailedAnalysisItem = mBugreportItem.getDumpsys().getBatteryStats().
                 getDetailedBatteryStatsItem();
         mProcStatsItem = mBugreportItem.getDumpsys().getProcStats();
+        mWifiStatsItem = mBugreportItem.getDumpsys().getWifiStats();
     }
 
     protected long getTimeOnBattery() {
@@ -56,6 +59,10 @@ public abstract class AbstractPowerRule implements IRule {
 
     protected DumpsysProcStatsItem getProcStatsItem() {
         return mProcStatsItem;
+    }
+
+    protected DumpsysWifiStatsItem getWifiStatsItem() {
+        return mWifiStatsItem;
     }
 
     @Override

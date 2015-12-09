@@ -19,6 +19,7 @@ package com.android.loganalysis.parser;
 import com.android.loganalysis.item.DumpsysBatteryStatsItem;
 import com.android.loganalysis.item.DumpsysItem;
 import com.android.loganalysis.item.DumpsysProcStatsItem;
+import com.android.loganalysis.item.DumpsysWifiStatsItem;
 
 import java.util.List;
 
@@ -26,14 +27,16 @@ import java.util.List;
  * A {@link IParser} to handle the output of the dumpsys section of the bugreport.
  */
 public class DumpsysParser extends AbstractSectionParser {
-    
+
     private static final String BATTERY_STATS_SECTION_REGEX = "^DUMP OF SERVICE batterystats:$";
     private static final String PROC_STATS_SECTION_REGEX = "^DUMP OF SERVICE procstats:";
+    private static final String WIFI_SECTION_REGEX = "^DUMP OF SERVICE wifi:";
     private static final String NOOP_SECTION_REGEX = "DUMP OF SERVICE .*";
 
     private DumpsysBatteryStatsParser mBatteryStatsParser = new DumpsysBatteryStatsParser();
     private DumpsysProcStatsParser mProcStatsParser = new DumpsysProcStatsParser();
-    
+    private DumpsysWifiStatsParser mWifiStatsParser = new DumpsysWifiStatsParser();
+
     private DumpsysItem mDumpsys = null;
 
     /**
@@ -61,6 +64,7 @@ public class DumpsysParser extends AbstractSectionParser {
     protected void setup() {
         addSectionParser(mBatteryStatsParser, BATTERY_STATS_SECTION_REGEX);
         addSectionParser(mProcStatsParser, PROC_STATS_SECTION_REGEX);
+        addSectionParser(mWifiStatsParser, WIFI_SECTION_REGEX);
         addSectionParser(new NoopParser(), NOOP_SECTION_REGEX);
     }
 
@@ -77,6 +81,7 @@ public class DumpsysParser extends AbstractSectionParser {
         if (mDumpsys != null) {
             mDumpsys.setBatteryInfo((DumpsysBatteryStatsItem) getSection(mBatteryStatsParser));
             mDumpsys.setProcStats((DumpsysProcStatsItem) getSection(mProcStatsParser));
+            mDumpsys.setWifiStats((DumpsysWifiStatsItem) getSection(mWifiStatsParser));
         }
     }
 }

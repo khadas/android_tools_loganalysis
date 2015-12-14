@@ -31,7 +31,7 @@ public class ProcrankParserTest extends TestCase {
     /**
      * Test that normal input is parsed.
      */
-    public void testProcRankParser() {
+    public void testProcRankParserShortLine() {
         List<String> inputBlock = Arrays.asList(
                 "  PID      Vss      Rss      Pss      Uss  cmdline",
                 "  178   87136K   81684K   52829K   50012K  system_server",
@@ -58,6 +58,39 @@ public class ProcrankParserTest extends TestCase {
         assertEquals((Integer) 33122, procrank.getPss(3247));
         assertEquals((Integer) 28360, procrank.getUss(334));
         assertEquals("android.process.acore", procrank.getProcessName(2072));
+        assertEquals(ArrayUtil.join("\n", inputBlock), procrank.getText());
+    }
+
+    /**
+     * Test that normal input is parsed.
+     */
+    public void testProcRankParserLongLine() {
+        List<String> inputBlock = Arrays.asList(
+                "  PID       Vss      Rss      Pss      Uss     Swap    PSwap    USwap    ZSwap  cmdline",
+                " 6711  3454396K  146300K  108431K  105524K   31540K   20522K   20188K    4546K  com.google.android.GoogleCamera",
+                " 1515  2535920K  131984K   93750K   89440K   42676K   31792K   31460K    7043K  system_server",
+                "19906  2439540K  130228K   85418K   69296K   11680K     353K       0K      78K  com.android.chrome:sandboxed_process10",
+                "13790  2596308K  124424K   75673K   69680K   11336K     334K       0K      74K  com.google.android.youtube",
+                " 9288  2437704K  119496K   74288K   69532K   11344K     334K       0K      74K  com.google.android.videos",
+                "                           51312K   22911K   20608K       0K       0K       0K  invalid.format",
+                "                           ------   ------   ------   ------   ------   ------  ------",
+                "                         1061237K  940460K  619796K  225468K  201688K   49950K  TOTAL",
+                "ZRAM: 52892K physical used for 238748K in swap (520908K total swap)",
+                "RAM: 1857348K total, 51980K free, 3780K buffers, 456272K cached, 29220K shmem, 97560K slab",
+                "[/system/xbin/su: 3.260s elapsed]");
+
+        ProcrankItem procrank = new ProcrankParser().parse(inputBlock);
+
+        // Ensures that only valid lines are parsed. Only 6 of the 11 lines under the header are
+        // valid.
+        assertEquals(5, procrank.getPids().size());
+
+        // Make sure all expected rows are present, and do a diagonal check of values
+        assertEquals((Integer) 3454396, procrank.getVss(6711));
+        assertEquals((Integer) 146300, procrank.getRss(6711));
+        assertEquals((Integer) 108431, procrank.getPss(6711));
+        assertEquals((Integer) 105524, procrank.getUss(6711));
+        assertEquals("com.google.android.GoogleCamera", procrank.getProcessName(6711));
         assertEquals(ArrayUtil.join("\n", inputBlock), procrank.getText());
     }
 

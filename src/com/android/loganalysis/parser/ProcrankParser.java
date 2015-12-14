@@ -30,13 +30,18 @@ public class ProcrankParser implements IParser {
 
     /** Match a valid line, such as:
      * " 1313   78128K   77996K   48603K   45812K  com.google.android.apps.maps" */
-    private static final Pattern LINE_PAT = Pattern.compile(
+    private static final Pattern SHORT_LINE_PAT = Pattern.compile(
             "\\s*(\\d+)\\s+" + /* PID [1] */
             "(\\d+)K\\s+(\\d+)K\\s+(\\d+)K\\s+(\\d+)K\\s+" + /* Vss Rss Pss Uss [2-5] */
             "(\\S+)" /* process name [6] */);
+    private static final Pattern LONG_LINE_PAT = Pattern.compile(
+            "\\s*(\\d+)\\s+" + /* PID [1] */
+            "(\\d+)K\\s+(\\d+)K\\s+(\\d+)K\\s+(\\d+)K\\s+" + /* Vss Rss Pss Uss [2-5] */
+            "(\\d+)K\\s+(\\d+)K\\s+(\\d+)K\\s+(\\d+)K\\s+" + /* Swap PSwap USwap ZSwap [6-9] */
+            "(\\S+)" /* process name [10] */);
 
-    /** Match the end of the Procrank table, determined by three sets of "------". */
-    private static final Pattern END_PAT = Pattern.compile("^\\s+-{6}\\s+-{6}\\s+-{6}");
+    /** Match the end of the Procrank table, determined by three or more sets of "------". */
+    private static final Pattern END_PAT = Pattern.compile("^(\\s+-{6}){3,}$");
 
     /**
      * {@inheritDoc}
@@ -58,9 +63,17 @@ public class ProcrankParser implements IParser {
                 return item;
             }
 
-            Matcher m = LINE_PAT.matcher(line);
+            Matcher m = SHORT_LINE_PAT.matcher(line);
             if (m.matches()) {
                 item.addProcrankLine(Integer.parseInt(m.group(1)), m.group(6),
+                        Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)),
+                        Integer.parseInt(m.group(4)), Integer.parseInt(m.group(5)));
+                continue;
+            }
+
+            m = LONG_LINE_PAT.matcher(line);
+            if (m.matches()) {
+                item.addProcrankLine(Integer.parseInt(m.group(1)), m.group(10),
                         Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)),
                         Integer.parseInt(m.group(4)), Integer.parseInt(m.group(5)));
             }

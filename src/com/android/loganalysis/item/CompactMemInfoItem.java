@@ -32,6 +32,7 @@ public class CompactMemInfoItem implements IItem {
     public static final String PID_JSON_KEY = "pid";
     public static final String NAME_JSON_KEY = "name";
     public static final String PSS_JSON_KEY = "pss";
+    public static final String SWAP_JSON_KEY = "swap";
     public static final String TYPE_JSON_KEY = "type";
     public static final String ACTIVITIES_JSON_KEY = "activities";
     public static final String PROCESSES_JSON_KEY = "processes";
@@ -39,6 +40,7 @@ public class CompactMemInfoItem implements IItem {
     /** Constants for attributes HashMap */
     private static final String NAME_ATTR_KEY = "name";
     private static final String PSS_ATTR_KEY = "pss";
+    private static final String SWAP_ATTR_KEY = "swap";
     private static final String TYPE_ATTR_KEY = "type";
     private static final String ACTIVITIES_ATTR_KEY = "activities";
 
@@ -66,6 +68,7 @@ public class CompactMemInfoItem implements IItem {
                 proc.put(PID_JSON_KEY, pid);
                 proc.put(NAME_JSON_KEY, getName(pid));
                 proc.put(PSS_JSON_KEY, getPss(pid));
+                proc.put(SWAP_JSON_KEY, getSwap(pid));
                 proc.put(TYPE_JSON_KEY, getType(pid));
                 proc.put(ACTIVITIES_JSON_KEY, hasActivities(pid));
                 processes.put(proc);
@@ -99,11 +102,12 @@ public class CompactMemInfoItem implements IItem {
     /**
      * Adds a process to the list stored in this item.
      */
-    public void addPid(int pid, String name, String type, long pss, boolean activities) {
+    public void addPid(int pid, String name, String type, long pss, long swap, boolean activities) {
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(NAME_ATTR_KEY, name);
         attributes.put(TYPE_ATTR_KEY, type);
         attributes.put(PSS_ATTR_KEY, pss);
+        attributes.put(SWAP_ATTR_KEY, swap);
         attributes.put(ACTIVITIES_ATTR_KEY, activities);
         mPids.put(pid, attributes);
     }
@@ -120,6 +124,13 @@ public class CompactMemInfoItem implements IItem {
      */
     public long getPss(int pid) {
         return (Long)get(pid).get(PSS_ATTR_KEY);
+    }
+
+    /**
+     * Return swap memory of the process with a given name.
+     */
+    public long getSwap(int pid) {
+        return (Long)get(pid).get(SWAP_ATTR_KEY);
     }
 
     /**

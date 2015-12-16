@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  */
 public class CompactMemInfoParser implements IParser {
     private static final Pattern PROC_PREFIX = Pattern.compile(
-            "proc,(.+),(.+),(\\d+),(\\d+),(.?)");
+            "proc,(\\w+),([a-zA-Z_0-9\\.]+),(\\d+),(\\d+),((\\S+),)?(.*)");
     private static final Pattern LOST_RAM_PREFIX = Pattern.compile(
             "lostram,(.+)");
 
@@ -57,8 +57,12 @@ public class CompactMemInfoParser implements IParser {
                 try {
                     int pid = Integer.parseInt(m.group(3));
                     long pss = Long.parseLong(m.group(4));
-                    boolean activities = "a".equals(m.group(5));
-                    item.addPid(pid, name, type, pss, activities);
+                    long swap = 0;
+                    if (m.group(6) != null && !"N/A".equals(m.group(6))) {
+                        swap = Long.parseLong(m.group(6));
+                    }
+                    boolean activities = "a".equals(m.group(6));
+                    item.addPid(pid, name, type, pss, swap, activities);
                     continue;
                 } catch (NumberFormatException nfe) {
                     // ignore exception

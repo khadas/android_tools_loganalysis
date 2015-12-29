@@ -48,6 +48,7 @@ public class MemoryHealthItem extends GenericItem {
      * Returns breakdown of memory usage of foreground processes.
      * @return Map that stores breakdown of memory usage
      */
+    @SuppressWarnings("unchecked")
     public Map<String, Map<String, Long>> getForeground() {
         return (Map<String, Map<String, Long>>) super.getAttribute(FOREGROUND);
     }
@@ -56,6 +57,7 @@ public class MemoryHealthItem extends GenericItem {
      * Returns breakdown of memory usage of foreground processes.
      * @return Map that stores breakdown of memory usage
      */
+    @SuppressWarnings("unchecked")
     public Map<String, Map<String, Long>> getBackground() {
         return (Map<String, Map<String, Long>>) super.getAttribute(BACKGROUND);
     }

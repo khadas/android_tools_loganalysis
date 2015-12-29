@@ -50,7 +50,9 @@ public class BugreportItem extends GenericItem {
             TIME, COMMAND_LINE, MEM_INFO, PROCRANK, TOP, KERNEL_LOG, LAST_KMSG, SYSTEM_LOG,
             SYSTEM_PROPS, DUMPSYS));
 
-    public static class CommandLineItem extends GenericMapItem<String> {}
+    public static class CommandLineItem extends GenericMapItem<String> {
+        private static final long serialVersionUID = 0L;
+    }
 
     /**
      * The constructor for {@link BugreportItem}.

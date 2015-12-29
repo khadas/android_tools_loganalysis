@@ -55,6 +55,7 @@ import java.util.Map;
  * @see {@link ArgsOptionParser}
  */
 //TODO: Use libTF once this is copied over.
+@SuppressWarnings("rawtypes")
 public class OptionSetter {
 
     static final String BOOL_FALSE_PREFIX = "no-";

@@ -33,14 +33,13 @@ public class OptionSetterTest extends TestCase {
 
     /** Option source with generic type. */
     private static class GenericTypeOptionSource {
-        @SuppressWarnings("unused")
         @Option(name = "my_option", shortName = 'o')
         private Collection<?> mMyOption;
     }
 
     /** Option source with unparameterized type. */
+    @SuppressWarnings("rawtypes")
     private static class CollectionTypeOptionSource {
-        @SuppressWarnings("unused")
         @Option(name = "my_option", shortName = 'o')
         private Collection mMyOption;
     }
@@ -50,18 +49,15 @@ public class OptionSetterTest extends TestCase {
 
     /** Option source with unparameterized type. */
     private static class NonCollectionGenericTypeOptionSource {
-        @SuppressWarnings("unused")
         @Option(name = "my_option", shortName = 'o')
         private MyGeneric<String> mMyOption;
     }
 
     /** Option source with options with same name. */
     private static class DuplicateOptionSource {
-        @SuppressWarnings("unused")
         @Option(name = "string", shortName = 's')
         private String mMyOption;
 
-        @SuppressWarnings("unused")
         @Option(name = "string", shortName = 's')
         private String mMyDuplicateOption;
     }
@@ -72,11 +68,9 @@ public class OptionSetterTest extends TestCase {
         @Option(name = "string", shortName = 's')
         private String mMyOption;
 
-        @SuppressWarnings("unused")
         @Option(name = "enum")
         private DefaultEnumClass mEnum = null;
 
-        @SuppressWarnings("unused")
         @Option(name = "string_collection")
         private Collection<String> mStringCollection = new ArrayList<String>();
 
@@ -93,7 +87,6 @@ public class OptionSetterTest extends TestCase {
      * Option source with an option with same name as AllTypesOptionSource, but a different type.
      */
     private static class SharedOptionWrongTypeSource {
-        @SuppressWarnings("unused")
         @Option(name = "string", shortName = 's')
         private int mMyOption;
     }
@@ -188,7 +181,6 @@ public class OptionSetterTest extends TestCase {
      * Option source with invalid option name.
      */
     private static class BadOptionNameSource {
-        @SuppressWarnings("unused")
         @Option(name = "bad:string", shortName = 's')
         private int mMyOption;
     }

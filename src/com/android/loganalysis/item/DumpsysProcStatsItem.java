@@ -20,5 +20,6 @@ package com.android.loganalysis.item;
  * used a helper item and not going to be marshalled to JSON
  */
 public class DumpsysProcStatsItem extends GenericMapItem<String> {
+    private static final long serialVersionUID = 1L;
 
 }

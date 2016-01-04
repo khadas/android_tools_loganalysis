@@ -194,6 +194,15 @@ public class LogcatParser implements IParser {
     }
 
     /**
+     * Clear the existing {@link LogcatItem}. The next parse will create a new one.
+     */
+    public void clear() {
+        mLogcat = null;
+        mDataList.clear();
+        mDataMap.clear();
+    }
+
+    /**
      * Parse a line of input.
      *
      * @param line The line to parse

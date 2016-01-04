@@ -748,6 +748,24 @@ public class LogcatParserTest extends TestCase {
         assertNull(item);
     }
 
+    /**
+     * Test that after clearing a parser, reusing it produces a new LogcatItem instead of
+     * appending to the previous one.
+     */
+    public void testClear() {
+        List<String> lines = Arrays.asList(
+                "04-25 18:33:28.273  7813  7813 E HelloTag: GetBufferLock timed out for thread 7813 buffer 0x61 usage 0x200 LockState 1",
+                "04-25 18:33:28.273  7813  7813 E GoodbyeTag: GetBufferLock timed out for thread 7813 buffer 0x61 usage 0x200 LockState 1"
+                );
+        LogcatParser parser = new LogcatParser();
+        LogcatItem l1 = parser.parse(lines.subList(0, 1));
+        parser.clear();
+        LogcatItem l2 = parser.parse(lines.subList(1, 2));
+        assertEquals(l1.getEvents().size(), 1);
+        assertEquals(l2.getEvents().size(), 1);
+        assertFalse(l1.getEvents().get(0).getTag().equals(l2.getEvents().get(0).getTag()));
+    }
+
     private Date parseTime(String timeStr) throws ParseException {
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         return formatter.parse(timeStr);

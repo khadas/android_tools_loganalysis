@@ -17,9 +17,14 @@
 package com.android.loganalysis.rule;
 
 import com.android.loganalysis.item.BugreportItem;
-import com.android.loganalysis.item.DumpsysProcStatsItem;
 import com.android.loganalysis.item.ProcessUsageItem;
 import com.android.loganalysis.item.ProcessUsageItem.ProcessUsageInfoItem;
+import com.android.loganalysis.item.ProcessUsageItem.SensorInfoItem;
+
+import com.android.loganalysis.util.NumberFormattingUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,10 +35,13 @@ import org.json.JSONObject;
  */
 public class ProcessUsageRule extends AbstractPowerRule {
 
-    private static final String PROCESS_USAGE_ANALYSIS = "PROCESS_USAGE_ANALYSIS";
+    private static final String ALARM_USAGE_ANALYSIS = "ALARM_USAGE_ANALYSIS";
+    private static final String SENSOR_USAGE_ANALYSIS = "SENSOR_USAGE_ANALYSIS";
     private static final long ALARM_THRESHOLD = 60000;
+    private static final float SENSOR_ACTIVE_TIME_THRESHOLD_PERCENTAGE = 0.1f; // 10%
 
-    private StringBuffer mAnalysisBuffer;
+    private List<ProcessUsageInfoItem> mOffendingAlarmList;
+    private List<ProcessUsageInfoItem> mOffendingSensorList;
 
     public ProcessUsageRule (BugreportItem bugreportItem) {
         super(bugreportItem);
@@ -42,23 +50,35 @@ public class ProcessUsageRule extends AbstractPowerRule {
 
     @Override
     public void applyRule() {
-        mAnalysisBuffer = new StringBuffer();
+        mOffendingAlarmList = new ArrayList<ProcessUsageInfoItem>();
+        mOffendingSensorList = new ArrayList<ProcessUsageInfoItem>();
+
         ProcessUsageItem processUsageItem = getDetailedAnalysisItem().getProcessUsageItem();
-        DumpsysProcStatsItem procStatsItem = getProcStatsItem();
-        if (processUsageItem != null && procStatsItem!= null) {
+        if (processUsageItem != null && getTimeOnBattery() > 0) {
             for (ProcessUsageInfoItem usage : processUsageItem.getProcessUsage()) {
                 if (usage.getAlarmWakeups() > 0) {
-                    final long alarmsPerMs = getTimeOnBattery()/usage.getAlarmWakeups();
-                    if (alarmsPerMs < ALARM_THRESHOLD) {
-                        final String processName = procStatsItem.get(usage.getProcessUID());
-                        if (processName != null) {
-                            mAnalysisBuffer.append(processName);
-                        } else {
-                            mAnalysisBuffer.append(usage.getProcessUID());
-                        }
-                        mAnalysisBuffer.append(" has requested frequent repeating alarms");
-                    }
+                    addAlarmAnalysis(usage);
                 }
+                if (usage.getSensorUsage() != null && usage.getSensorUsage().size() > 0) {
+                    addSensorAnalysis(usage);
+                }
+            }
+        }
+    }
+
+    private void addAlarmAnalysis(ProcessUsageInfoItem usage) {
+        final long alarmsPerMs = getTimeOnBattery()/usage.getAlarmWakeups();
+        if (alarmsPerMs < ALARM_THRESHOLD) {
+            mOffendingAlarmList.add(usage);
+        }
+    }
+
+    private void addSensorAnalysis(ProcessUsageInfoItem usage) {
+        final long sensorUsageThresholdMs = (long) (getTimeOnBattery()
+                * SENSOR_ACTIVE_TIME_THRESHOLD_PERCENTAGE);
+        for (SensorInfoItem sensorInfo : usage.getSensorUsage()) {
+            if (sensorInfo.getUsageDurationMs() > sensorUsageThresholdMs) {
+                mOffendingSensorList.add(usage);
             }
         }
     }
@@ -66,10 +86,34 @@ public class ProcessUsageRule extends AbstractPowerRule {
     @Override
     public JSONObject getAnalysis() {
         JSONObject usageAnalysis = new JSONObject();
+        StringBuilder alarmAnalysis = new StringBuilder();
+        if (mOffendingAlarmList == null || mOffendingAlarmList.size() <= 0) {
+            alarmAnalysis.append("No apps requested for alarms more frequent than 60 secs.");
+        } else {
+            for (ProcessUsageInfoItem alarmInfo : mOffendingAlarmList) {
+                alarmAnalysis.append(String.format(
+                        "UID %s has requested frequent repeating alarms. ",
+                        alarmInfo.getProcessUID()));
+            }
+        }
+        StringBuilder sensorAnalysis = new StringBuilder();
+        if (mOffendingSensorList == null || mOffendingSensorList.size() <= 0) {
+            sensorAnalysis.append("No apps used sensors more than 10% time on battery.");
+        } else {
+            for (ProcessUsageInfoItem sensorInfo : mOffendingSensorList) {
+                for (SensorInfoItem sensors : sensorInfo.getSensorUsage()) {
+                    sensorAnalysis.append(String.format("sensor %s was used for %s by UID %s. ",
+                            sensors.getSensorName(),
+                            NumberFormattingUtil.getDuration(sensors.getUsageDurationMs()),
+                            sensorInfo.getProcessUID()));
+                }
+            }
+        }
         try {
-            usageAnalysis.put(PROCESS_USAGE_ANALYSIS, mAnalysisBuffer.toString());
+            usageAnalysis.put(ALARM_USAGE_ANALYSIS, alarmAnalysis.toString().trim());
+            usageAnalysis.put(SENSOR_USAGE_ANALYSIS, sensorAnalysis.toString().trim());
         } catch (JSONException e) {
-          // do nothing
+            // do nothing
         }
         return usageAnalysis;
     }

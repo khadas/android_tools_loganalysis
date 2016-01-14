@@ -68,5 +68,6 @@ public class RuleEngine {
         mRulesList.add(new ProcessUsageRule(mBugreportItem));
         mRulesList.add(new LocationUsageRule(mBugreportItem));
         mRulesList.add(new WifiStatsRule(mBugreportItem));
+        mRulesList.add(new InterruptRule(mBugreportItem));
     }
 }

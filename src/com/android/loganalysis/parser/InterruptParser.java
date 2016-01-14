@@ -70,7 +70,7 @@ public class InterruptParser implements IParser {
     }
 
     private InterruptCategory getInterruptCategory(String interruptName) {
-        if (interruptName.contains("bcmsdh_sdmmc")) {
+        if (interruptName.contains("bcmsdh_sdmmc") || interruptName.contains("msm_pcie_wake")) {
             return InterruptCategory.WIFI_INTERRUPT;
         } else if (interruptName.contains("smd-modem") ||
                 interruptName.contains("smsm-modem")) {

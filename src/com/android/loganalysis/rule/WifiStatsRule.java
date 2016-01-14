@@ -25,7 +25,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Rules definition for Process usage
+ * Rules definition for Wifi stats
  */
 public class WifiStatsRule extends AbstractPowerRule {
 
@@ -34,7 +34,9 @@ public class WifiStatsRule extends AbstractPowerRule {
     // Wifi scans are scheduled by GSA every 285 seconds, anything more frequent is an issue
     private static final long WIFI_SCAN_INTERVAL_THRESHOLD_MS = 285000;
 
-    private StringBuffer mAnalysisBuffer;
+    private long mFrequentWifiScansIntervalSecs = 0;
+    private int mNumFrequentWifiDisconnects = 0;
+
     private BugreportItem mBugreportItem = null;
 
     public WifiStatsRule (BugreportItem bugreportItem) {
@@ -44,7 +46,6 @@ public class WifiStatsRule extends AbstractPowerRule {
 
     @Override
     public void applyRule() {
-        mAnalysisBuffer = new StringBuffer();
         if (mBugreportItem.getDumpsys() == null || getTimeOnBattery() <= 0) {
             return;
         }
@@ -57,21 +58,33 @@ public class WifiStatsRule extends AbstractPowerRule {
                     dumpsysWifiStatsItem.getNumWifiScans();
 
             if (observedWifiScanIntervalMs < WIFI_SCAN_INTERVAL_THRESHOLD_MS) {
-                mAnalysisBuffer.append(String.format("Wifi scans happened every %d seconds.",
-                        TimeUnit.MILLISECONDS.toSeconds(observedWifiScanIntervalMs)));
+                mFrequentWifiScansIntervalSecs = TimeUnit.MILLISECONDS.toSeconds(
+                        observedWifiScanIntervalMs);
             }
-            if (dumpsysWifiStatsItem.getNumWifiDisconnects() >= WIFI_DISCONNECT_THRESHOLD) {
-                mAnalysisBuffer.append(String.format("Wifi got disconnected %d times",
-                        dumpsysWifiStatsItem.getNumWifiDisconnects()));
-            }
+        }
+        if (dumpsysWifiStatsItem.getNumWifiDisconnects() >= WIFI_DISCONNECT_THRESHOLD) {
+            mNumFrequentWifiDisconnects = dumpsysWifiStatsItem.getNumWifiDisconnects();
         }
     }
 
     @Override
     public JSONObject getAnalysis() {
         JSONObject wifiStatsAnalysis = new JSONObject();
+        StringBuilder analysis = new StringBuilder();
+        if (mFrequentWifiScansIntervalSecs == 0) {
+            analysis.append("No apps requested for frequent wifi scans. ");
+        } else {
+            analysis.append(String.format("Wifi scans happened every %d seconds. ",
+                    mFrequentWifiScansIntervalSecs));
+        }
+        if (mNumFrequentWifiDisconnects == 0) {
+            analysis.append("No frequent wifi disconnects were observed. ");
+        } else {
+            analysis.append(String.format("Wifi got disconnected %d times. ",
+                    mNumFrequentWifiDisconnects));
+        }
         try {
-            wifiStatsAnalysis.put(WIFI_STATS, mAnalysisBuffer.toString());
+            wifiStatsAnalysis.put(WIFI_STATS, analysis.toString().trim());
         } catch (JSONException e) {
           // do nothing
         }

@@ -21,6 +21,9 @@ import com.android.loganalysis.item.WakelockItem;
 import com.android.loganalysis.item.WakelockItem.WakelockInfoItem;
 import com.android.loganalysis.util.NumberFormattingUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,25 +35,23 @@ public class WakelockRule extends AbstractPowerRule {
     private static final String WAKELOCK_ANALYSIS = "WAKELOCK_ANALYSIS";
     private static final float WAKELOCK_HELD_TIME_THRESHOLD_PERCENTAGE = 0.1f; // 10%
 
-    private String mAnalysis = null;
+    private List<WakelockInfoItem> mOffendingWakelockList;
 
     public WakelockRule (BugreportItem bugreportItem) {
         super(bugreportItem);
     }
 
-    @SuppressWarnings("cast")
     @Override
     public void applyRule() {
+        mOffendingWakelockList = new ArrayList<WakelockInfoItem>();
         WakelockItem wakelockItem = getDetailedAnalysisItem().getWakelockItem();
-        if (wakelockItem != null) {
+        if (wakelockItem != null && getTimeOnBattery() > 0) {
             long wakelockThreshold =  (long)(getTimeOnBattery()
                     * WAKELOCK_HELD_TIME_THRESHOLD_PERCENTAGE);
 
             for (WakelockInfoItem wakelocks : wakelockItem.getWakeLocks()) {
                 if (wakelocks.getHeldTime() > wakelockThreshold) {
-                    mAnalysis = String.format("%s %s is held for %s", wakelocks.getName(),
-                            wakelocks.getCategory(),
-                            NumberFormattingUtil.getDuration(wakelocks.getHeldTime()));
+                    mOffendingWakelockList.add(wakelocks);
                 }
             }
         }
@@ -59,10 +60,19 @@ public class WakelockRule extends AbstractPowerRule {
     @Override
     public JSONObject getAnalysis() {
         JSONObject wakelockAnalysis = new JSONObject();
-        try {
-            if (mAnalysis != null) {
-                wakelockAnalysis.put(WAKELOCK_ANALYSIS, mAnalysis);
+
+        StringBuilder analysis = new StringBuilder();
+        if (mOffendingWakelockList == null || mOffendingWakelockList.size() <= 0) {
+            analysis.append("No wakelocks were held for more than 10% of time on battery.");
+        } else {
+            for (WakelockInfoItem wakelocks : mOffendingWakelockList) {
+                analysis.append(String.format("%s %s is held for %s. ", wakelocks.getName(),
+                        wakelocks.getCategory(),
+                        NumberFormattingUtil.getDuration(wakelocks.getHeldTime())));
             }
+        }
+        try {
+            wakelockAnalysis.put(WAKELOCK_ANALYSIS, analysis.toString().trim());
         } catch (JSONException e) {
           // do nothing
         }

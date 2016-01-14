@@ -125,6 +125,13 @@ public class InterruptItem implements IItem {
     }
 
     /**
+     * Get a list of {@link InterruptInfoItem} objects
+     */
+    public List<InterruptInfoItem> getInterrupts() {
+        return (List<InterruptInfoItem>) mInterrupts;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

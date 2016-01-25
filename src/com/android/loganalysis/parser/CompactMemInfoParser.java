@@ -61,7 +61,7 @@ public class CompactMemInfoParser implements IParser {
                     if (m.group(6) != null && !"N/A".equals(m.group(6))) {
                         swap = Long.parseLong(m.group(6));
                     }
-                    boolean activities = "a".equals(m.group(6));
+                    boolean activities = "a".equals(m.group(7));
                     item.addPid(pid, name, type, pss, swap, activities);
                     continue;
                 } catch (NumberFormatException nfe) {

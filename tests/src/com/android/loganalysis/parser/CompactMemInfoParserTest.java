@@ -28,8 +28,8 @@ import java.util.List;
 
 public class CompactMemInfoParserTest extends TestCase {
 
-    public void testSingleProcLineWithSwap() {
-        List<String> input = Arrays.asList("proc,cached,com.google.android.youtube1,2964,19345,1005,e");
+    public void testSingleProcLineWithSwapHasActivities() {
+        List<String> input = Arrays.asList("proc,cached,com.google.android.youtube1,2964,19345,1005,a");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
 
@@ -38,10 +38,24 @@ public class CompactMemInfoParserTest extends TestCase {
         assertEquals(19345, item.getPss(2964));
         assertEquals(1005, item.getSwap(2964));
         assertEquals("cached", item.getType(2964));
-        assertEquals(false, item.hasActivities(2964));
+        assertEquals(true, item.hasActivities(2964));
     }
 
-    public void testSingleProcLineWithoutSwap() {
+    public void testSingleProcLineWithoutSwapHasActivities() {
+        List<String> input = Arrays.asList("proc,cached,com.google.android.youtube,2964,19345,a");
+
+        CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
+
+        assertEquals(1, item.getPids().size());
+        assertEquals("com.google.android.youtube", item.getName(2964));
+        assertEquals(19345, item.getPss(2964));
+        assertEquals(0, item.getSwap(2964));
+        assertEquals("cached", item.getType(2964));
+        assertEquals(true, item.hasActivities(2964));
+    }
+
+
+    public void testSingleProcLineWithoutSwapNoActivities() {
         List<String> input = Arrays.asList("proc,cached,com.google.android.youtube,2964,19345,e");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);

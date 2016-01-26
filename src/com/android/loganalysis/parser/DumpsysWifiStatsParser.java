@@ -41,6 +41,13 @@ public class DumpsysWifiStatsParser implements IParser {
             + "bssid=\\w+:\\w+:\\w+:\\w+:\\w+:\\w+ reason=\\d+(\\s*locally_generated=\\d+)?\\]");
 
     /**
+     * Matches: 01-21 18:17:23.15 - Event [IFNAME=wlan0 Trying to associate with SSID 'WL-power-2']
+     */
+    private static final Pattern WIFI_ASSOCIATION = Pattern.compile(
+            "^\\d+-\\d+ \\d+:\\d+:\\d+\\.\\d+ - Event \\[IFNAME=wlan0 Trying to associate with "
+            + "SSID \\'.*\\'\\]");
+
+    /**
      * {@inheritDoc}
      *
      * @return The {@link DumpsysWifiStatsItem}.
@@ -50,6 +57,7 @@ public class DumpsysWifiStatsParser implements IParser {
         DumpsysWifiStatsItem item = new DumpsysWifiStatsItem();
         int numWifiScans = 0;
         int numWifiDisconnects = 0;
+        int numWifiAssociations = 0;
         for (String line : lines) {
             Matcher m = WIFI_SCAN.matcher(line);
             if(m.matches()) {
@@ -59,10 +67,16 @@ public class DumpsysWifiStatsParser implements IParser {
             m = WIFI_DISCONNECT.matcher(line);
             if (m.matches()) {
                 numWifiDisconnects++;
+                continue;
+            }
+            m = WIFI_ASSOCIATION.matcher(line);
+            if (m.matches()) {
+                numWifiAssociations++;
             }
         }
         item.setNumWifiScan(numWifiScans);
         item.setNumWifiDisconnect(numWifiDisconnects);
+        item.setNumWifiAssociation(numWifiAssociations);
         return item;
     }
 

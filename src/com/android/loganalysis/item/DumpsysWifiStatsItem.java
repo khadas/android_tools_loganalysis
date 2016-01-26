@@ -27,9 +27,11 @@ public class DumpsysWifiStatsItem extends GenericItem {
     public static final String WIFI_DISCONNECT = "WIFI_DISCONNECT";
     /** Constant for JSON output */
     public static final String WIFI_SCAN = "WIFI_SCAN";
+    /** Constant for JSON output */
+    public static final String WIFI_ASSOCIATION = "WIFI_ASSOCIATION";
 
     private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(
-            WIFI_DISCONNECT, WIFI_SCAN));
+            WIFI_DISCONNECT, WIFI_SCAN, WIFI_ASSOCIATION));
 
      /**
      * The constructor for {@link DumpsysWifiStatsItem}.
@@ -53,6 +55,13 @@ public class DumpsysWifiStatsItem extends GenericItem {
     }
 
     /**
+     * Set number of times of wifi associations
+     */
+    public void setNumWifiAssociation(int numWifiAssociations) {
+        setAttribute(WIFI_ASSOCIATION, numWifiAssociations);
+    }
+
+    /**
      * Get the number of times wifi disconnected
      */
     public int getNumWifiDisconnects() {
@@ -64,5 +73,12 @@ public class DumpsysWifiStatsItem extends GenericItem {
      */
     public int getNumWifiScans() {
         return (int) getAttribute(WIFI_SCAN);
+    }
+
+    /**
+     * Get the number of times wifi association event triggered
+     */
+    public int getNumWifiAssociations() {
+        return (int) getAttribute(WIFI_ASSOCIATION);
     }
 }

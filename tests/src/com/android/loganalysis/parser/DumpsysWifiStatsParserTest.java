@@ -56,11 +56,15 @@ public class DumpsysWifiStatsParserTest extends TestCase {
                 "10-08 13:06:25.363 - Event [IFNAME=wlan0 CTRL-EVENT-SCAN-STARTED ]",
                 "10-08 13:08:15.018 - Event [IFNAME=wlan0 CTRL-EVENT-DISCONNECTED "
                 + "bssid=9c:1c:12:e8:72:d2 reason=3 locally_generated=1]",
-                "10-08 13:08:15.324 - wlan0: 442:IFNAME=wlan0 ENABLE_NETWORK 0 -> true");
+                "10-08 13:08:15.324 - wlan0: 442:IFNAME=wlan0 ENABLE_NETWORK 0 -> true",
+                "01-21 13:17:23.1 - Event [IFNAME=wlan0 Trying to associate with SSID 'WL-power']",
+                "01-21 13:18:23.1 - Event [IFNAME=wlan0 Trying to associate with SSID 'WL-power']",
+                "01-21 13:18:23.1 - Event [IFNAME=wlan0 Trying to associate with SSID 'WL-power']");
 
         DumpsysWifiStatsItem wifiStats = new DumpsysWifiStatsParser().parse(inputBlock);
         assertEquals(2, wifiStats.getNumWifiDisconnects());
         assertEquals(3, wifiStats.getNumWifiScans());
+        assertEquals(3, wifiStats.getNumWifiAssociations());
     }
 
     /**
@@ -93,6 +97,7 @@ public class DumpsysWifiStatsParserTest extends TestCase {
         DumpsysWifiStatsItem wifiStats = new DumpsysWifiStatsParser().parse(inputBlock);
         assertEquals(0, wifiStats.getNumWifiDisconnects());
         assertEquals(0, wifiStats.getNumWifiScans());
+        assertEquals(0, wifiStats.getNumWifiAssociations());
     }
 }
 

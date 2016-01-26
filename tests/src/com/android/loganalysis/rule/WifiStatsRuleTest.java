@@ -20,10 +20,6 @@ import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.DumpsysBatteryStatsItem;
 import com.android.loganalysis.item.DumpsysItem;
 import com.android.loganalysis.item.DumpsysWifiStatsItem;
-import com.android.loganalysis.parser.BugreportParser;
-
-import java.util.Arrays;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -58,6 +54,7 @@ public class WifiStatsRuleTest extends TestCase {
         DumpsysWifiStatsItem wifiStats = new DumpsysWifiStatsItem();
         wifiStats.setNumWifiDisconnect(1);
         wifiStats.setNumWifiScan(0);
+        wifiStats.setNumWifiAssociation(0);
 
         mDumpsys.setWifiStats(wifiStats);
         WifiStatsRule wifiStatsRule = new WifiStatsRule(mBugreport);
@@ -66,13 +63,15 @@ public class WifiStatsRuleTest extends TestCase {
         assertNotNull(analysis);
         assertTrue(analysis.has("WIFI_STATS"));
         assertEquals(analysis.getString("WIFI_STATS"),
-                "No apps requested for frequent wifi scans. Wifi got disconnected 1 times.");
+                "No apps requested for frequent wifi scans. Wifi got disconnected 1 times. "
+                + "No frequent wifi associations were observed.");
     }
 
     public void testWifiScanAnalysis() throws Exception {
         DumpsysWifiStatsItem wifiStats = new DumpsysWifiStatsItem();
         wifiStats.setNumWifiDisconnect(0);
         wifiStats.setNumWifiScan(3);
+        wifiStats.setNumWifiAssociation(0);
 
         mDumpsys.setWifiStats(wifiStats);
         WifiStatsRule wifiStatsRule = new WifiStatsRule(mBugreport);
@@ -81,7 +80,24 @@ public class WifiStatsRuleTest extends TestCase {
         assertNotNull(analysis);
         assertTrue(analysis.has("WIFI_STATS"));
         assertEquals(analysis.getString("WIFI_STATS"),
-                "Wifi scans happened every 100 seconds. No frequent wifi disconnects were observed."
-                );
+                "Wifi scans happened every 100 seconds. No frequent wifi disconnects were "
+                + "observed. No frequent wifi associations were observed.");
+    }
+
+    public void testWifiAssociationAnalysis() throws Exception {
+        DumpsysWifiStatsItem wifiStats = new DumpsysWifiStatsItem();
+        wifiStats.setNumWifiDisconnect(0);
+        wifiStats.setNumWifiScan(0);
+        wifiStats.setNumWifiAssociation(3);
+
+        mDumpsys.setWifiStats(wifiStats);
+        WifiStatsRule wifiStatsRule = new WifiStatsRule(mBugreport);
+        wifiStatsRule.applyRule();
+        JSONObject analysis = wifiStatsRule.getAnalysis();
+        assertNotNull(analysis);
+        assertTrue(analysis.has("WIFI_STATS"));
+        assertEquals(analysis.getString("WIFI_STATS"),
+                "No apps requested for frequent wifi scans. No frequent wifi disconnects were "
+                + "observed. Wifi got associated with AP 3 times.");
     }
 }

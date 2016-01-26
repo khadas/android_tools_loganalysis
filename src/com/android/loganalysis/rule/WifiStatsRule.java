@@ -31,11 +31,13 @@ public class WifiStatsRule extends AbstractPowerRule {
 
     private static final String WIFI_STATS = "WIFI_STATS";
     private static final int WIFI_DISCONNECT_THRESHOLD = 1; // wifi disconnect should never happen
+    private static final int WIFI_ASSOCIATION_THRESHOLD = 1;
     // Wifi scans are scheduled by GSA every 285 seconds, anything more frequent is an issue
     private static final long WIFI_SCAN_INTERVAL_THRESHOLD_MS = 285000;
 
     private long mFrequentWifiScansIntervalSecs = 0;
     private int mNumFrequentWifiDisconnects = 0;
+    private int mNumFrequentWifiAssociations = 0;
 
     private BugreportItem mBugreportItem = null;
 
@@ -65,6 +67,9 @@ public class WifiStatsRule extends AbstractPowerRule {
         if (dumpsysWifiStatsItem.getNumWifiDisconnects() >= WIFI_DISCONNECT_THRESHOLD) {
             mNumFrequentWifiDisconnects = dumpsysWifiStatsItem.getNumWifiDisconnects();
         }
+        if (dumpsysWifiStatsItem.getNumWifiAssociations() > WIFI_ASSOCIATION_THRESHOLD) {
+            mNumFrequentWifiAssociations = dumpsysWifiStatsItem.getNumWifiAssociations();
+        }
     }
 
     @Override
@@ -82,6 +87,12 @@ public class WifiStatsRule extends AbstractPowerRule {
         } else {
             analysis.append(String.format("Wifi got disconnected %d times. ",
                     mNumFrequentWifiDisconnects));
+        }
+        if (mNumFrequentWifiAssociations == 0) {
+            analysis.append("No frequent wifi associations were observed. ");
+        } else {
+            analysis.append(String.format("Wifi got associated with AP %d times. ",
+                    mNumFrequentWifiAssociations));
         }
         try {
             wifiStatsAnalysis.put(WIFI_STATS, analysis.toString().trim());

@@ -29,7 +29,8 @@ import java.util.List;
 public class DumpsysBatteryStatsParser extends AbstractSectionParser {
 
     private static final String SUMMARY_INFO_SECTION_REGEX =
-            "Battery History \\(\\d+% used, \\d+KB used of \\d+KB, \\d+ strings using \\d+KB\\):$";
+            "Battery History \\(\\d+% used, \\d+(KB)? used of \\d+KB, \\d+ strings using "
+            + "\\d+(KB)?\\):$";
     private static final String DETAILED_INFO_SECTION_REGEX = "^Statistics since last charge:$";
     private static final String NOOP_SECTION_REGEX = "^Statistics since last unplugged:$";
 

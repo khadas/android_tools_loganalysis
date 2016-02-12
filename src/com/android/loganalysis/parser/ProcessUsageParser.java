@@ -84,6 +84,12 @@ public class ProcessUsageParser implements IParser {
                 alarmWakeups = Integer.parseInt(m.group(1));
             }
         }
+        // Add the last process usage stats to the list
+        if (processUid != null) {
+            // Save the process usage info for the previous process
+            mItem.addProcessUsage(processUid, alarmWakeups, mSensorUsage);
+        }
+
         return mItem;
     }
 

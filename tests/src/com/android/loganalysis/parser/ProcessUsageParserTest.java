@@ -54,11 +54,12 @@ public class ProcessUsageParserTest extends TestCase {
                "  Proc servicemanager:",
                "      CPU: 2s 20ms usr + 4s 60ms krn ; 0ms fg",
                "    Apk android:",
-               "      2 wakeup alarms");
+               "      2 wakeup alarms",
+               "  ");
 
         ProcessUsageItem processUsage = new ProcessUsageParser().parse(inputBlock);
 
-        assertEquals(2, processUsage.getProcessUsage().size());
+        assertEquals(3, processUsage.getProcessUsage().size());
 
         LinkedList<ProcessUsageInfoItem> processUsageInfo =
                 (LinkedList<ProcessUsageInfoItem>)processUsage.getProcessUsage();
@@ -69,6 +70,9 @@ public class ProcessUsageParserTest extends TestCase {
         LinkedList<SensorInfoItem> sensor = processUsageInfo.get(1).getSensorUsage();
         assertEquals("44", sensor.get(0).getSensorName());
         assertEquals("36", sensor.get(1).getSensorName());
+
+        sensor = processUsageInfo.get(2).getSensorUsage();
+        assertEquals("0", sensor.get(0).getSensorName());
     }
 }
 

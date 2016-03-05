@@ -16,6 +16,7 @@
 
 package com.android.loganalysis.parser;
 
+import com.android.loganalysis.item.BatteryDischargeStatsInfoItem;
 import com.android.loganalysis.item.BatteryStatsDetailedInfoItem;
 import com.android.loganalysis.item.DumpsysBatteryStatsItem;
 import com.android.loganalysis.item.BatteryStatsSummaryInfoItem;
@@ -31,11 +32,17 @@ public class DumpsysBatteryStatsParser extends AbstractSectionParser {
     private static final String SUMMARY_INFO_SECTION_REGEX =
             "Battery History \\(\\d+% used, \\d+(KB)? used of \\d+KB, \\d+ strings using "
             + "\\d+(KB)?\\):$";
+    private static final String DISCHARGE_STATS_INFO_SECTION_REGEX = "^Discharge step durations:$";
     private static final String DETAILED_INFO_SECTION_REGEX = "^Statistics since last charge:$";
-    private static final String NOOP_SECTION_REGEX = "^Statistics since last unplugged:$";
+
+    // We are not using this sections and will be ignored.
+    private static final String NOOP_SECTION_REGEX =
+        "^(Statistics since last unplugged:|Daily stats:)$";
 
     private BatteryStatsSummaryInfoParser mSummaryParser = new BatteryStatsSummaryInfoParser();
     private BatteryStatsDetailedInfoParser mDetailedParser = new BatteryStatsDetailedInfoParser();
+    private BatteryDischargeStatsInfoParser mDischargeStepsParser = new
+        BatteryDischargeStatsInfoParser();
 
     private DumpsysBatteryStatsItem mDumpsysBatteryStatsItem = null;
     private boolean mParsedInput = false;
@@ -64,6 +71,7 @@ public class DumpsysBatteryStatsParser extends AbstractSectionParser {
     protected void setup() {
         addSectionParser(mSummaryParser, SUMMARY_INFO_SECTION_REGEX);
         addSectionParser(mDetailedParser, DETAILED_INFO_SECTION_REGEX);
+        addSectionParser(mDischargeStepsParser, DISCHARGE_STATS_INFO_SECTION_REGEX);
         addSectionParser(new NoopParser(), NOOP_SECTION_REGEX);
     }
 
@@ -82,9 +90,11 @@ public class DumpsysBatteryStatsParser extends AbstractSectionParser {
 
         if (mDumpsysBatteryStatsItem != null) {
             mDumpsysBatteryStatsItem.setBatteryStatsSummarytem(
-                    (BatteryStatsSummaryInfoItem) getSection(mSummaryParser));
+                (BatteryStatsSummaryInfoItem) getSection(mSummaryParser));
             mDumpsysBatteryStatsItem.setDetailedBatteryStatsItem(
-                    (BatteryStatsDetailedInfoItem) getSection(mDetailedParser));
+                (BatteryStatsDetailedInfoItem) getSection(mDetailedParser));
+            mDumpsysBatteryStatsItem.setBatteryDischargeStatsItem(
+                (BatteryDischargeStatsInfoItem) getSection(mDischargeStepsParser));
         }
     }
 }

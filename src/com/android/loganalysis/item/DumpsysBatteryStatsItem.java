@@ -27,9 +27,12 @@ public class DumpsysBatteryStatsItem implements IItem {
     public static final String SUMMARY = "SUMMARY";
     /** Constant for JSON output */
     public static final String DETAILED_STATS = "DETAILED_STATS";
+    /** Constant for JSON output */
+    public static final String DISCHARGE_STATS = "DISCHARGE_STATS";
 
     private BatteryStatsSummaryInfoItem mBatteryStatsSummaryItem;
     private BatteryStatsDetailedInfoItem mDetailedBatteryStatsItem;
+    private BatteryDischargeStatsInfoItem mDischargeStatsItem;
 
     /**
      * Set the battery stats summary {@link BatteryStatsSummaryInfoItem}
@@ -46,6 +49,13 @@ public class DumpsysBatteryStatsItem implements IItem {
     }
 
     /**
+     * Set the battery steps info item {@link BatteryDischargeStatsInfoItem}
+     */
+    public void setBatteryDischargeStatsItem(BatteryDischargeStatsInfoItem item){
+        mDischargeStatsItem = item;
+    }
+
+    /**
      * Get the battery stats summary {@link BatteryStatsSummaryInfoItem}
      */
     public BatteryStatsSummaryInfoItem getBatteryStatsSummaryItem() {
@@ -59,6 +69,12 @@ public class DumpsysBatteryStatsItem implements IItem {
         return mDetailedBatteryStatsItem;
     }
 
+    /**
+     * Get the battery steps info item {@link BatteryDischargeStatsInfoItem}
+     */
+    public BatteryDischargeStatsInfoItem getBatteryDischargeStatsItem() {
+        return mDischargeStatsItem;
+    }
 
     /**
      * {@inheritDoc}
@@ -88,6 +104,9 @@ public class DumpsysBatteryStatsItem implements IItem {
             }
             if (mDetailedBatteryStatsItem != null) {
                 batteryStatsComponent.put(DETAILED_STATS, mDetailedBatteryStatsItem.toJson());
+            }
+            if (mDischargeStatsItem != null) {
+                batteryStatsComponent.put(DISCHARGE_STATS, mDischargeStatsItem.toJson());
             }
         } catch (JSONException e) {
             // ignore

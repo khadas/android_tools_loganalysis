@@ -43,6 +43,15 @@ public class MemoryHealthParser implements IParser {
         mappings.put("Peak Dalvik Heap", MemoryHealthItem.DALVIK_PEAK);
         mappings.put("Peak Native Heap", MemoryHealthItem.NATIVE_PEAK);
         mappings.put("Peak PSS", MemoryHealthItem.PSS_PEAK);
+
+        mappings.put("Average Summary Java Heap", MemoryHealthItem.SUMMARY_JAVA_HEAP_AVG);
+        mappings.put("Average Summary Native Heap", MemoryHealthItem.SUMMARY_NATIVE_HEAP_AVG);
+        mappings.put("Average Summary Code", MemoryHealthItem.SUMMARY_CODE_AVG);
+        mappings.put("Average Summary Stack", MemoryHealthItem.SUMMARY_STACK_AVG);
+        mappings.put("Average Summary Graphics", MemoryHealthItem.SUMMARY_GRAPHICS_AVG);
+        mappings.put("Average Summary Other", MemoryHealthItem.SUMMARY_OTHER_AVG);
+        mappings.put("Average Summary System", MemoryHealthItem.SUMMARY_SYSTEM_AVG);
+        mappings.put("Average Summary Overall Pss", MemoryHealthItem.SUMMARY_OVERALL_PSS_AVG);
         SECTION_MAPPINGS = Collections.unmodifiableMap(mappings);
     }
 

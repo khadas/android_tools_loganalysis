@@ -36,6 +36,14 @@ public class MemHealthParserTest extends TestCase {
                 "Peak Native Heap: 11136",
                 "Peak Dalvik Heap: 9812",
                 "Peak PSS: 95161",
+                "Average Summary Java Heap: 8223",
+                "Average Summary Native Heap: 3852",
+                "Average Summary Code: 1804",
+                "Average Summary Stack: 246",
+                "Average Summary Graphics: 0",
+                "Average Summary Other: 855",
+                "Average Summary System: 9151",
+                "Average Summary Overall Pss: 24135",
                 "Count 528"
                 );
 
@@ -50,6 +58,14 @@ public class MemHealthParserTest extends TestCase {
         assertEquals(11136, process.get("native_peak").longValue());
         assertEquals(9812, process.get("dalvik_peak").longValue());
         assertEquals(95161, process.get("pss_peak").longValue());
+        assertEquals(8223, process.get("summary_java_heap_avg").longValue());
+        assertEquals(3852, process.get("summary_native_heap_avg").longValue());
+        assertEquals(1804, process.get("summary_code_avg").longValue());
+        assertEquals(246, process.get("summary_stack_avg").longValue());
+        assertEquals(0, process.get("summary_graphics_avg").longValue());
+        assertEquals(855, process.get("summary_other_avg").longValue());
+        assertEquals(9151, process.get("summary_system_avg").longValue());
+        assertEquals(24135, process.get("summary_overall_pss_avg").longValue());
     }
 
     public void testTwoForegroundProc() {
@@ -61,6 +77,14 @@ public class MemHealthParserTest extends TestCase {
                 "Peak Native Heap: 11136",
                 "Peak Dalvik Heap: 9812",
                 "Peak PSS: 95161",
+                "Average Summary Java Heap: 8223",
+                "Average Summary Native Heap: 3852",
+                "Average Summary Code: 1804",
+                "Average Summary Stack: 246",
+                "Average Summary Graphics: 0",
+                "Average Summary Other: 855",
+                "Average Summary System: 9151",
+                "Average Summary Overall Pss: 24135",
                 "Count 528",
                 "com.google.android.music",
                 "Average Native Heap: 1",
@@ -69,6 +93,14 @@ public class MemHealthParserTest extends TestCase {
                 "Peak Native Heap: 4",
                 "Peak Dalvik Heap: 5",
                 "Peak PSS: 6",
+                "Average Summary Java Heap: 7",
+                "Average Summary Native Heap: 8",
+                "Average Summary Code: 9",
+                "Average Summary Stack: 10",
+                "Average Summary Graphics: 11",
+                "Average Summary Other: 12",
+                "Average Summary System: 13",
+                "Average Summary Overall Pss: 14",
                 "Count 7"
                 );
 
@@ -82,6 +114,14 @@ public class MemHealthParserTest extends TestCase {
         assertEquals(4, process.get("native_peak").longValue());
         assertEquals(5, process.get("dalvik_peak").longValue());
         assertEquals(6, process.get("pss_peak").longValue());
+        assertEquals(7, process.get("summary_java_heap_avg").longValue());
+        assertEquals(8, process.get("summary_native_heap_avg").longValue());
+        assertEquals(9, process.get("summary_code_avg").longValue());
+        assertEquals(10, process.get("summary_stack_avg").longValue());
+        assertEquals(11, process.get("summary_graphics_avg").longValue());
+        assertEquals(12, process.get("summary_other_avg").longValue());
+        assertEquals(13, process.get("summary_system_avg").longValue());
+        assertEquals(14, process.get("summary_overall_pss_avg").longValue());
     }
 
     public void testForegroundBackgroundProc() {
@@ -93,6 +133,14 @@ public class MemHealthParserTest extends TestCase {
                 "Peak Native Heap: 11136",
                 "Peak Dalvik Heap: 9812",
                 "Peak PSS: 95161",
+                "Average Summary Java Heap: 8223",
+                "Average Summary Native Heap: 3852",
+                "Average Summary Code: 1804",
+                "Average Summary Stack: 246",
+                "Average Summary Graphics: 0",
+                "Average Summary Other: 855",
+                "Average Summary System: 9151",
+                "Average Summary Overall Pss: 24135",
                 "Count 528",
                 "Background",
                 "com.google.android.music",
@@ -102,6 +150,14 @@ public class MemHealthParserTest extends TestCase {
                 "Peak Native Heap: 4",
                 "Peak Dalvik Heap: 5",
                 "Peak PSS: 6",
+                "Average Summary Java Heap: 7",
+                "Average Summary Native Heap: 8",
+                "Average Summary Code: 9",
+                "Average Summary Stack: 10",
+                "Average Summary Graphics: 11",
+                "Average Summary Other: 12",
+                "Average Summary System: 13",
+                "Average Summary Overall Pss: 14",
                 "Count 7"
                 );
 
@@ -116,5 +172,13 @@ public class MemHealthParserTest extends TestCase {
         assertEquals(4, process.get("native_peak").longValue());
         assertEquals(5, process.get("dalvik_peak").longValue());
         assertEquals(6, process.get("pss_peak").longValue());
+        assertEquals(7, process.get("summary_java_heap_avg").longValue());
+        assertEquals(8, process.get("summary_native_heap_avg").longValue());
+        assertEquals(9, process.get("summary_code_avg").longValue());
+        assertEquals(10, process.get("summary_stack_avg").longValue());
+        assertEquals(11, process.get("summary_graphics_avg").longValue());
+        assertEquals(12, process.get("summary_other_avg").longValue());
+        assertEquals(13, process.get("summary_system_avg").longValue());
+        assertEquals(14, process.get("summary_overall_pss_avg").longValue());
     }
 }

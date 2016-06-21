@@ -18,17 +18,10 @@ package com.android.loganalysis.parser;
 import com.android.loganalysis.item.BugreportItem;
 import com.android.loganalysis.item.IItem;
 import com.android.loganalysis.item.MiscKernelLogItem;
-import com.android.loganalysis.rule.RuleEngine;
-import com.android.loganalysis.rule.RuleEngine.RuleType;
 import com.android.loganalysis.util.ArrayUtil;
 
 import junit.framework.TestCase;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -325,6 +318,10 @@ public class BugreportParserTest extends TestCase {
         assertEquals("Last boot reason: hw_reset",
                 bugreport.getLastKmsg().getEvents().get(0).getStack());
         assertEquals("KERNEL_RESET", bugreport.getLastKmsg().getEvents().get(0).getCategory());
+        assertEquals("", bugreport.getLastKmsg().getEvents().get(0).getPreamble());
+        assertEquals(0.0, bugreport.getLastKmsg().getEvents().get(0).getEventTime());
+        assertEquals(0.0, bugreport.getLastKmsg().getStartTime());
+        assertEquals(0.0, bugreport.getLastKmsg().getStopTime());
     }
 
     /**

@@ -245,6 +245,8 @@ public class BugreportParser extends AbstractSectionParser {
                     MiscKernelLogItem item = new MiscKernelLogItem();
                     item.setStack("Last boot reason: " + bootreason.trim());
                     item.setCategory(KernelLogParser.KERNEL_RESET);
+                    item.setPreamble("");
+                    item.setEventTime(0.0);
                     lastKmsg.addEvent(item);
                 }
                 m = KernelLogParser.GOOD_BOOTREASONS.matcher(bootreason);
@@ -261,6 +263,8 @@ public class BugreportParser extends AbstractSectionParser {
                 MiscKernelLogItem unknownReset = new MiscKernelLogItem();
                 unknownReset.setStack("Unknown reason");
                 unknownReset.setCategory(KernelLogParser.KERNEL_RESET);
+                unknownReset.setPreamble("");
+                unknownReset.setEventTime(0.0);
                 lastKmsg.addEvent(unknownReset);
             }
         }

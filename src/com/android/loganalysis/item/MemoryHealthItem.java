@@ -37,6 +37,15 @@ public class MemoryHealthItem extends GenericItem {
     public static final String NATIVE_PEAK = "native_peak";
     public static final String PSS_PEAK = "pss_peak";
 
+    public static final String SUMMARY_JAVA_HEAP_AVG = "summary_java_heap_avg";
+    public static final String SUMMARY_NATIVE_HEAP_AVG = "summary_native_heap_avg";
+    public static final String SUMMARY_CODE_AVG = "summary_code_avg";
+    public static final String SUMMARY_STACK_AVG = "summary_stack_avg";
+    public static final String SUMMARY_GRAPHICS_AVG = "summary_graphics_avg";
+    public static final String SUMMARY_OTHER_AVG = "summary_other_avg";
+    public static final String SUMMARY_SYSTEM_AVG = "summary_system_avg";
+    public static final String SUMMARY_OVERALL_PSS_AVG = "summary_overall_pss_avg";
+
     public MemoryHealthItem(Map<String, Map<String, Long>> foreground,
             Map<String, Map<String, Long>> background) {
         super(new HashSet<String>(Arrays.asList(FOREGROUND, BACKGROUND)));

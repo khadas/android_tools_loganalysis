@@ -17,6 +17,7 @@
 package com.android.loganalysis;
 
 import com.android.loganalysis.item.BatteryDischargeItemTest;
+import com.android.loganalysis.item.DvmLockSampleItemTest;
 import com.android.loganalysis.item.GenericItemTest;
 import com.android.loganalysis.item.InterruptItemTest;
 import com.android.loganalysis.item.MemInfoItemTest;
@@ -31,6 +32,7 @@ import com.android.loganalysis.parser.AnrParserTest;
 import com.android.loganalysis.parser.BugreportParserTest;
 import com.android.loganalysis.parser.CompactMemInfoParserTest;
 import com.android.loganalysis.parser.EventsLogParserTest;
+import com.android.loganalysis.parser.DvmLockSampleParserTest;
 import com.android.loganalysis.parser.InterruptParserTest;
 import com.android.loganalysis.parser.JavaCrashParserTest;
 import com.android.loganalysis.parser.KernelLogParserTest;
@@ -67,6 +69,7 @@ public class UnitTests extends TestSuite {
 
         // item
         addTestSuite(BatteryDischargeItemTest.class);
+        addTestSuite(DvmLockSampleItemTest.class);
         addTestSuite(GenericItemTest.class);
         addTestSuite(InterruptItemTest.class);
         addTestSuite(MemInfoItemTest.class);
@@ -83,6 +86,7 @@ public class UnitTests extends TestSuite {
         addTestSuite(BugreportParserTest.class);
         addTestSuite(CompactMemInfoParserTest.class);
         addTestSuite(EventsLogParserTest.class);
+        addTestSuite(DvmLockSampleParserTest.class);
         addTestSuite(InterruptParserTest.class);
         addTestSuite(JavaCrashParserTest.class);
         addTestSuite(KernelLogParserTest.class);

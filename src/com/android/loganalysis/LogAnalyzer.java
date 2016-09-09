@@ -16,12 +16,14 @@
 package com.android.loganalysis;
 
 import com.android.loganalysis.item.BugreportItem;
+import com.android.loganalysis.item.DvmLockSampleItem;
 import com.android.loganalysis.item.IItem;
 import com.android.loganalysis.item.KernelLogItem;
 import com.android.loganalysis.item.LogcatItem;
 import com.android.loganalysis.item.MemoryHealthItem;
 import com.android.loganalysis.item.MonkeyLogItem;
 import com.android.loganalysis.parser.BugreportParser;
+import com.android.loganalysis.parser.DvmLockSampleParser;
 import com.android.loganalysis.parser.KernelLogParser;
 import com.android.loganalysis.parser.LogcatParser;
 import com.android.loganalysis.parser.MemoryHealthParser;
@@ -84,6 +86,9 @@ public class LogAnalyzer {
     @Option(name="print", description="Print the result type")
     private List<ResultType> mResultType = new ArrayList<ResultType>();
 
+    @Option(name="events-log", description="The path to the events log")
+    private String mEventsLogPath = null;
+
     /** Constant for JSON output */
     private static final String RAW_DATA = "RAW";
     /** Constant for JSON output */
@@ -139,6 +144,16 @@ public class LogAnalyzer {
                 reader = getBufferedReader(mMemoryHealthLogPath);
                 MemoryHealthItem item = new MemoryHealthParser().parse(reader);
                 printMemoryHealthLog(item);
+                return;
+            }
+
+            if (mEventsLogPath != null) {
+                reader = getBufferedReader(mEventsLogPath);
+
+                // The only log we know how to parse in the Events log are
+                // DVM lock samples.
+                DvmLockSampleItem item = new DvmLockSampleParser().parse(reader);
+                printDVMLog(item);
                 return;
             }
         } catch (FileNotFoundException e) {
@@ -250,6 +265,16 @@ public class LogAnalyzer {
     }
 
     /**
+     * Print a DVM log entry to stdout.
+     */
+    private void printDVMLog(DvmLockSampleItem dvmLog) {
+        if (OutputFormat.JSON.equals(mOutputFormat)) {
+            printJson(dvmLog);
+        }
+        // TODO: Print DVM log in human readable form.
+    }
+
+    /**
      * Print an {@link IItem} to stdout.
      */
     private void printJson(IItem item) {
@@ -322,7 +347,7 @@ public class LogAnalyzer {
      * Print the usage for the command.
      */
     private void printUsage() {
-        System.err.println("Usage: loganalysis [--bugreport FILE | --logcat FILE | " +
+        System.err.println("Usage: loganalysis [--bugreport FILE | --events-log FILE | --logcat FILE | " +
                 "--kernel-log FILE | --monkey-log FILE]");
     }
 

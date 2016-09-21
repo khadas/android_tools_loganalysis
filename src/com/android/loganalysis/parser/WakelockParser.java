@@ -30,7 +30,7 @@ public class WakelockParser implements IParser {
 
     private static final String WAKE_LOCK_PAT_SUFFIX =
             "(?:(\\d+)d)?\\s?(?:(\\d+)h)?\\s?(?:(\\d+)m)?\\s?(?:(\\d+)s)?\\s?(?:(\\d+)ms)?"
-            + "\\s?\\((\\d+) times\\) realtime";
+            + "\\s?\\((\\d+) times\\)(?: max=\\d+)? realtime";
 
     /**
      * Match a valid line such as:
@@ -57,26 +57,25 @@ public class WakelockParser implements IParser {
         Matcher m = null;
         int wakelockCounter = 0;
         for (String line : lines) {
-            if ("".equals(line.trim())) {
+            if (wakelockCounter >= TOP_WAKELOCK_COUNT || "".equals(line.trim())) {
                 // Done with wakelock parsing
                 break;
             }
 
             m = KERNEL_WAKE_LOCK_PAT.matcher(line);
-            if (m.matches()) {
-                if (wakelockCounter < TOP_WAKELOCK_COUNT &&
-                        !line.contains("PowerManagerService.WakeLocks")) {
-                    parseKernelWakeLock(line, WakeLockCategory.KERNEL_WAKELOCK);
-                    wakelockCounter++;
-                }
+            if (m.matches() && !line.contains("PowerManagerService.WakeLocks")) {
+                parseKernelWakeLock(line, WakeLockCategory.KERNEL_WAKELOCK);
+                wakelockCounter++;
                 continue;
             }
+
             m = PARTIAL_WAKE_LOCK_PAT.matcher(line);
-            if (m.matches() && wakelockCounter < TOP_WAKELOCK_COUNT) {
+            if (m.matches()) {
                 parsePartialWakeLock(line, WakeLockCategory.PARTIAL_WAKELOCK);
                 wakelockCounter++;
             }
         }
+
         return mItem;
     }
 

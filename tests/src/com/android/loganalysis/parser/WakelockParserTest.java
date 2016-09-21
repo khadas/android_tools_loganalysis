@@ -58,6 +58,31 @@ public class WakelockParserTest extends TestCase {
     public void testPartialWakelockParser() {
         List<String> inputBlock = Arrays.asList(
                 " All partial wake locks:",
+                " Wake lock u0a7 NlpWakeLock: 8m 13s 203ms (1479 times) max=0 realtime",
+                " Wake lock u0a7 NlpCollectorWakeLock: 6m 29s 18ms (238 times) max=0 realtime",
+                " Wake lock u0a7 GCM_CONN_ALARM: 6m 8s 587ms (239 times) max=0 realtime",
+                " Wake lock 1000 *alarm*: 5m 11s 316ms (1469 times) max=0 realtime",
+                " Wake lock u10 xxx: 4m 11s 316ms (1469 times) max=0 realtime",
+                " Wake lock u30 cst: 2m 11s 316ms (1469 times) max=0 realtime",
+                "");
+
+        WakelockItem wakelock = new WakelockParser().parse(inputBlock);
+
+        assertEquals(WakelockParser.TOP_WAKELOCK_COUNT,
+                wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).size());
+        assertEquals("NlpWakeLock", wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).
+                get(0).getName());
+        assertEquals("u0a7", wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).
+                get(0).getProcessUID());
+        assertEquals(493203, wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).
+                get(0).getHeldTime());
+        assertEquals(1479, wakelock.getWakeLocks(WakeLockCategory.PARTIAL_WAKELOCK).
+                get(0).getLockedCount());
+    }
+
+    public void testPartialWakelockParserOnOldFormat() {
+        List<String> inputBlock = Arrays.asList(
+                " All partial wake locks:",
                 " Wake lock u0a7 NlpWakeLock: 8m 13s 203ms (1479 times) realtime",
                 " Wake lock u0a7 NlpCollectorWakeLock: 6m 29s 18ms (238 times) realtime",
                 " Wake lock u0a7 GCM_CONN_ALARM: 6m 8s 587ms (239 times) realtime",

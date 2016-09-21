@@ -17,10 +17,11 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.IItem;
+import com.android.loganalysis.item.LatencyItem;
 import com.android.loganalysis.item.TransitionDelayItem;
 
-import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -31,24 +32,31 @@ import java.util.regex.Pattern;
  */
 public class EventsLogParser implements IParser {
 
+    // 08-21 17:53:53.876 1053 2135
+    private static final String EVENTS_PREFIX = "^\\d{2}-\\d{2} \\d{2}:\\d{2}"
+            + ":\\d{2}.\\d{3}\\s+\\d+\\s+\\d+ ";
     // 08-21 17:53:53.876 1053 2135 I am_restart_activity:
     // [0,188098346,127,com.google.android.gm/.ConversationListActivityGmail]
-    private static final Pattern ACTIVITY_RESTART = Pattern.compile("^\\d{2}-\\d{2} \\d{2}:\\d{2}"
-            + ":\\d{2}.\\d{3}\\s+\\d+\\s+\\d+ I am_restart_activity: "
-            + "\\[\\d+\\,\\d+\\,\\d+\\,(?<componentname>.*)\\]$");
-    // 08-21 17:57:15.363 1053 2095 I am_resume_activity:
+    private static final Pattern ACTIVITY_RESTART = Pattern.compile(
+            String.format("%s%s", EVENTS_PREFIX, "I am_restart_activity: "
+                    + "\\[\\d+\\,\\d+\\,\\d+\\,(?<componentname>.*)\\]$"));
+    // 08-21 17:53:53.876 1053 2135 I am_resume_activity:
     // [0,228277756,132,com.google.android.gm/.ConversationListActivityGmail]
-    private static final Pattern ACTIVITY_RESUME = Pattern.compile("^\\d{2}-\\d{2} \\d{2}:\\d{2}"
-            + ":\\d{2}.\\d{3}\\s+\\d+\\s+\\d+ I am_resume_activity: "
-            + "\\[\\d+\\,\\d+\\,\\d+\\,(?<componentname>.*)\\]$");
-    // 08-21 17:53:53.893 1053 1115 I sysui_action: [321,74]
-    private static final Pattern STARTING_WINDOW_DELAY = Pattern.compile("^\\d{2}-\\d{2} \\d{2}:"
-            + "\\d{2}:\\d{2}.\\d{3}\\s+\\d+\\s+\\d+ I sysui_action: \\[321,(?<startdelay>.*)\\]$");
-    // 08-21 17:54:16.672 1053 1115 I sysui_action: [319,99]
-    private static final Pattern TRANSITION_DELAY = Pattern
-            .compile("^\\d{2}-\\d{2} \\d{2}:"
-                    + "\\d{2}:\\d{2}.\\d{3}\\s+\\d+\\s+\\d+ I sysui_action: \\[319,"
-                    + "(?<transitdelay>.*)\\]$");
+    private static final Pattern ACTIVITY_RESUME = Pattern.compile(
+            String.format("%s%s", EVENTS_PREFIX, "I am_resume_activity: "
+                    + "\\[\\d+\\,\\d+\\,\\d+\\,(?<componentname>.*)\\]$"));
+    // 08-21 17:53:53.876 1053 2135 I sysui_action: [321,74]
+    private static final Pattern STARTING_WINDOW_DELAY = Pattern.compile(
+            String.format("%s%s", EVENTS_PREFIX, "I sysui_action: \\[321,"
+                    + "(?<startdelay>.*)\\]$"));
+    // 08-21 17:53:53.876 1053 2135 I sysui_action: [319,99]
+    private static final Pattern TRANSITION_DELAY = Pattern.compile(
+            String.format("%s%s", EVENTS_PREFIX, "I sysui_action: \\[319,"
+                    + "(?<transitdelay>.*)\\]$"));
+    // 08-21 17:53:53.876 1053 2135 I sysui_latency: [1,50]
+    private static final Pattern ACTION_LATENCY = Pattern.compile(
+            String.format("%s%s", EVENTS_PREFIX, "I sysui_latency: \\[(?<action>.*),"
+                    + "(?<delay>.*)\\]$"));
 
     @Override
     public IItem parse(List<String> lines) {
@@ -71,7 +79,7 @@ public class EventsLogParser implements IParser {
         boolean isRecentStartWindowDelay = false;
         while ((line = input.readLine()) != null) {
             Matcher match = null;
-            if (((match = matches(ACTIVITY_RESTART, line))) != null ||
+            if ((match = matches(ACTIVITY_RESTART, line)) != null ||
                     ((match = matches(ACTIVITY_RESUME, line)) != null)) {
                 componentNameStack.add(match.group("componentname"));
                 isRecentStartWindowDelay = false;
@@ -95,6 +103,28 @@ public class EventsLogParser implements IParser {
             }
         }
         return transitionDelayItems;
+    }
+
+    /**
+     * Method to parse the latency information from the events log
+     *
+     * @param input
+     * @return
+     * @throws IOException
+     */
+    public List<LatencyItem> parseLatencyInfo(BufferedReader input) throws IOException {
+        List<LatencyItem> latencyItems = new ArrayList<LatencyItem>();
+        String line;
+        while ((line = input.readLine()) != null) {
+            Matcher match = null;
+            if (((match = matches(ACTION_LATENCY, line))) != null) {
+                LatencyItem latencyItem = new LatencyItem();
+                latencyItem.setActionId(Integer.parseInt(match.group("action")));
+                latencyItem.setDelay(Long.parseLong(match.group("delay")));
+                latencyItems.add(latencyItem);
+            }
+        }
+        return latencyItems;
     }
 
     /**

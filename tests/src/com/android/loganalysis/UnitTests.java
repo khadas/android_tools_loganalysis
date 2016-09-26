@@ -30,6 +30,7 @@ import com.android.loganalysis.parser.AbstractSectionParserTest;
 import com.android.loganalysis.parser.AnrParserTest;
 import com.android.loganalysis.parser.BugreportParserTest;
 import com.android.loganalysis.parser.CompactMemInfoParserTest;
+import com.android.loganalysis.parser.EventsLogParserTest;
 import com.android.loganalysis.parser.InterruptParserTest;
 import com.android.loganalysis.parser.JavaCrashParserTest;
 import com.android.loganalysis.parser.KernelLogParserTest;
@@ -81,6 +82,7 @@ public class UnitTests extends TestSuite {
         addTestSuite(AnrParserTest.class);
         addTestSuite(BugreportParserTest.class);
         addTestSuite(CompactMemInfoParserTest.class);
+        addTestSuite(EventsLogParserTest.class);
         addTestSuite(InterruptParserTest.class);
         addTestSuite(JavaCrashParserTest.class);
         addTestSuite(KernelLogParserTest.class);

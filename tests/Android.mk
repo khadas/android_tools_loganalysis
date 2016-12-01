@@ -23,7 +23,7 @@ LOCAL_JAVACFLAGS += -g -Xlint
 
 LOCAL_MODULE := loganalysis-tests
 LOCAL_MODULE_TAGS := optional
-LOCAL_STATIC_JAVA_LIBRARIES := easymock junit
+LOCAL_STATIC_JAVA_LIBRARIES := easymock junit-host
 LOCAL_JAVA_LIBRARIES := loganalysis
 
 include $(BUILD_HOST_JAVA_LIBRARY)

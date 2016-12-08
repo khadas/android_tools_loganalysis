@@ -16,7 +16,9 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.KernelLogItem;
+import com.android.loganalysis.item.LowMemoryKillerItem;
 import com.android.loganalysis.item.MiscKernelLogItem;
+import com.android.loganalysis.item.PageAllocationFailureItem;
 import com.android.loganalysis.item.SELinuxItem;
 import com.android.loganalysis.util.LogPatternUtil;
 
@@ -232,6 +234,70 @@ public class KernelLogParserTest extends TestCase {
         assertEquals(43.399164, selinuxItem.getEventTime(), 0.0000005);
         assertEquals(KernelLogParser.SELINUX_DENIAL, selinuxItem.getCategory());
         assertEquals(SELINUX_DENIAL_STACK, selinuxItem.getStack());
+    }
+
+    /**
+     * Test that an LowMemoryKiller event can be parsed out of a list of log lines.
+     */
+    public void testLowMemoryKillerParse() {
+        final String LMK_MESSAGE = "Killing '.qcrilmsgtunnel' (3699), adj 100,";
+        List<String> lines = Arrays.asList(
+                "<4>[    0.000000] Memory policy: ECC disabled, Data cache writealloc",
+                "<7>[    7.896355] SELinux: initialized (dev cgroup, type cgroup)" +
+                        ", uses genfs_contexts",
+                "<3>[   43.399164] " + LMK_MESSAGE);
+        KernelLogItem kernelLog = new KernelLogParser().parse(lines);
+
+        assertNotNull(kernelLog);
+        assertEquals(0.0, kernelLog.getStartTime(), 0.0000005);
+        assertEquals(43.399164, kernelLog.getStopTime(), 0.0000005);
+        assertEquals(2, kernelLog.getEvents().size());
+        assertEquals(1, kernelLog.getMiscEvents(KernelLogParser.LOW_MEMORY_KILLER).size());
+        assertEquals(1, kernelLog.getLowMemoryKillerEvents().size());
+
+        MiscKernelLogItem miscItem = kernelLog.getMiscEvents(KernelLogParser.LOW_MEMORY_KILLER)
+                .get(0);
+        assertEquals(43.399164, miscItem.getEventTime(), 0.0000005);
+        assertEquals(KernelLogParser.LOW_MEMORY_KILLER, miscItem.getCategory());
+        assertEquals(LMK_MESSAGE, miscItem.getStack());
+
+        LowMemoryKillerItem lmkItem = kernelLog.getLowMemoryKillerEvents().get(0);
+        assertEquals(KernelLogParser.LOW_MEMORY_KILLER, lmkItem.getCategory());
+        assertEquals(3699, lmkItem.getPid());
+        assertEquals(".qcrilmsgtunnel", lmkItem.getProcessName());
+        assertEquals(100, lmkItem.getAdjustment());
+        assertEquals(LMK_MESSAGE, lmkItem.getStack());
+    }
+
+    /**
+     * Test that page allocation failures can be parsed out of a list of log lines.
+     */
+    public void testPageAllocationFailureParse() {
+        final String ALLOC_FAILURE = "page allocation failure: order:3, mode:0x10c0d0";
+        List<String> lines = Arrays.asList(
+                "<4>[    0.000000] Memory policy: ECC disabled, Data cache writealloc",
+                "<7>[    7.896355] SELinux: initialized (dev cgroup, type cgroup)" +
+                        ", uses genfs_contexts",
+                "<3>[   43.399164] " + ALLOC_FAILURE);
+        KernelLogItem kernelLog = new KernelLogParser().parse(lines);
+
+        assertNotNull(kernelLog);
+        assertEquals(0.0, kernelLog.getStartTime(), 0.0000005);
+        assertEquals(43.399164, kernelLog.getStopTime(), 0.0000005);
+        assertEquals(2, kernelLog.getEvents().size());
+        assertEquals(1, kernelLog.getMiscEvents(KernelLogParser.PAGE_ALLOC_FAILURE).size());
+        assertEquals(1, kernelLog.getPageAllocationFailureEvents().size());
+
+        MiscKernelLogItem miscItem = kernelLog.getMiscEvents(KernelLogParser.PAGE_ALLOC_FAILURE)
+                .get(0);
+        assertEquals(43.399164, miscItem.getEventTime(), 0.0000005);
+        assertEquals(KernelLogParser.PAGE_ALLOC_FAILURE, miscItem.getCategory());
+        assertEquals(ALLOC_FAILURE, miscItem.getStack());
+
+        PageAllocationFailureItem failItem = kernelLog.getPageAllocationFailureEvents().get(0);
+        assertEquals(KernelLogParser.PAGE_ALLOC_FAILURE, failItem.getCategory());
+        assertEquals(3, failItem.getOrder());
+        assertEquals(ALLOC_FAILURE, failItem.getStack());
     }
 
     public void testMantaReset() {

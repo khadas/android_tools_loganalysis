@@ -16,7 +16,9 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.KernelLogItem;
+import com.android.loganalysis.item.LowMemoryKillerItem;
 import com.android.loganalysis.item.MiscKernelLogItem;
+import com.android.loganalysis.item.PageAllocationFailureItem;
 import com.android.loganalysis.item.SELinuxItem;
 import com.android.loganalysis.util.LogPatternUtil;
 import com.android.loganalysis.util.LogTailUtil;
@@ -28,13 +30,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
-* A {@link IParser} to parse {@code /proc/last_kmsg} and the output from {@code dmsg}.
+* A {@link IParser} to parse {@code /proc/last_kmsg}, {@code /proc/kmsg}, and the output from
+* {@code dmesg}.
 */
 public class KernelLogParser implements IParser {
     public static final String KERNEL_RESET = "KERNEL_RESET";
     public static final String KERNEL_ERROR = "KERNEL_ERROR";
     public static final String SELINUX_DENIAL = "SELINUX_DENIAL";
     public static final String NORMAL_REBOOT = "NORMAL_REBOOT";
+    public static final String PAGE_ALLOC_FAILURE = "PAGE_ALLOC_FAILURE";
+    public static final String LOW_MEMORY_KILLER = "LOW_MEMORY_KILLER";
 
     /**
      * Matches: [     0.000000] Message<br />
@@ -44,6 +49,12 @@ public class KernelLogParser implements IParser {
             "^(<\\d+>)?\\[\\s*(\\d+\\.\\d{6})\\] (.*)$");
     private static final Pattern SELINUX_DENIAL_PATTERN = Pattern.compile(
             ".*avc:\\s.*scontext=\\w*:\\w*:([\\w\\s]*):\\w*\\s.*");
+    // Matches: page allocation failure: order:3, mode:0x10c0d0
+    private static final Pattern PAGE_ALLOC_FAILURE_PATTERN = Pattern.compile(
+            ".*page\\s+allocation\\s+failure:\\s+order:(\\d+).*");
+    // Matches: Killing '.qcrilmsgtunnel' (3699), adj 100,
+    private static final Pattern LOW_MEMORY_KILLER_PATTERN = Pattern.compile(
+            ".*Killing\\s+'(.*)'\\s+\\((\\d+)\\),.*adj\\s+(\\d+).*");
 
     /**
      * Regular expression representing all known bootreasons which are bad.
@@ -163,6 +174,22 @@ public class KernelLogParser implements IParser {
                 selinuxItem.setSContext(m.group(1));
             }
             kernelLogItem = selinuxItem;
+        } else if (category.equals(PAGE_ALLOC_FAILURE)) {
+            PageAllocationFailureItem allocItem = new PageAllocationFailureItem();
+            Matcher m = PAGE_ALLOC_FAILURE_PATTERN.matcher(message);
+            if (m.matches()) {
+                allocItem.setOrder(Integer.parseInt(m.group(1)));
+            }
+            kernelLogItem = allocItem;
+        } else if (category.equals(LOW_MEMORY_KILLER)) {
+            LowMemoryKillerItem lmkItem = new LowMemoryKillerItem();
+            Matcher m = LOW_MEMORY_KILLER_PATTERN.matcher(message);
+            if (m.matches()) {
+                lmkItem.setProcessName(m.group(1));
+                lmkItem.setPid(Integer.parseInt(m.group(2)));
+                lmkItem.setAdjustment(Integer.parseInt(m.group(3)));
+            }
+            kernelLogItem = lmkItem;
         } else {
             kernelLogItem = new MiscKernelLogItem();
         }
@@ -229,6 +256,10 @@ public class KernelLogParser implements IParser {
 
         // SELINUX denials
         mPatternUtil.addPattern(SELINUX_DENIAL_PATTERN, SELINUX_DENIAL);
+        // Page allocation failures
+        mPatternUtil.addPattern(PAGE_ALLOC_FAILURE_PATTERN, PAGE_ALLOC_FAILURE);
+        // Lowmemorykiller kills
+        mPatternUtil.addPattern(LOW_MEMORY_KILLER_PATTERN, LOW_MEMORY_KILLER);
     }
 
     /**

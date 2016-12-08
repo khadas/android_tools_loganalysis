@@ -130,6 +130,32 @@ public class KernelLogItem extends GenericItem {
     }
 
     /**
+     * Get the list of all {@link LowMemoryKillerItem} events.
+     */
+    public List<LowMemoryKillerItem> getLowMemoryKillerEvents() {
+        List<LowMemoryKillerItem> items = new LinkedList<LowMemoryKillerItem>();
+        for (MiscKernelLogItem item : getEvents()) {
+            if (item instanceof LowMemoryKillerItem) {
+                items.add((LowMemoryKillerItem)item);
+            }
+        }
+        return items;
+    }
+
+    /**
+     * Get the list of all {@link PageAllocationFailureItem} events.
+     */
+    public List<PageAllocationFailureItem> getPageAllocationFailureEvents() {
+        List<PageAllocationFailureItem> items = new LinkedList<PageAllocationFailureItem>();
+        for (MiscKernelLogItem item : getEvents()) {
+            if (item instanceof PageAllocationFailureItem) {
+                items.add((PageAllocationFailureItem)item);
+            }
+        }
+        return items;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

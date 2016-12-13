@@ -106,7 +106,7 @@ public class LogcatParserTest extends TestCase {
                 logcat.getJavaCrashes().get(0).getEventTime());
     }
 
-    public void testParse_test_exception() throws ParseException {
+    public void testParse_test_exception() {
         List<String> lines = Arrays.asList(
                 "11-25 19:26:53.581  5832  7008 I TestRunner: ----- begin exception -----",
                 "11-25 19:26:53.589  5832  7008 I TestRunner: ",
@@ -145,7 +145,7 @@ public class LogcatParserTest extends TestCase {
         assertEquals(LogcatParser.JAVA_CRASH, logcat.getJavaCrashes().get(0).getCategory());
     }
 
-    public void testParse_test_exception_with_exras() throws ParseException {
+    public void testParse_test_exception_with_exras() {
         List<String> lines = Arrays.asList(
                 "12-06 17:19:18.746  6598  7960 I TestRunner: failed: testYouTube(com.android.test.uiautomator.aupt.YouTubeTest)",
                 "12-06 17:19:18.746  6598  7960 I TestRunner: ----- begin exception -----",

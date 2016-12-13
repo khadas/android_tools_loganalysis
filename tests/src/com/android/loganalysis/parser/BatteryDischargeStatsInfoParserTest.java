@@ -20,8 +20,6 @@ import com.android.loganalysis.item.BatteryDischargeStatsInfoItem;
 
 import junit.framework.TestCase;
 
-import org.json.JSONException;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -145,7 +143,7 @@ public class BatteryDischargeStatsInfoParserTest extends TestCase {
     /**
      * Test that input with only a few discharge stats.
      */
-    public void testBatteryDischargeStatsWithTop5Percentages() throws JSONException {
+    public void testBatteryDischargeStatsWithTop5Percentages() {
         List<String> input = Arrays.asList(
             "  #95: +3m9s77ms to 95 (screen-on, power-save-off, device-idle-off)",
             "  #96: +7m0s308ms to 96 (screen-on, power-save-off, device-idle-off)",

@@ -19,6 +19,8 @@ package com.android.loganalysis.parser;
 import com.android.loganalysis.item.LatencyItem;
 import com.android.loganalysis.item.TransitionDelayItem;
 
+import junit.framework.TestCase;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,14 +31,17 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 /**
  * Unit tests for {@link EventsLogParser}.
  */
 public class EventsLogParserTest extends TestCase {
 
     private File mTempFile = null;
+
+    @Override
+    protected void tearDown() throws Exception {
+        mTempFile.delete();
+    }
 
     /**
      * Test for empty events logs passed to the transition delay parser

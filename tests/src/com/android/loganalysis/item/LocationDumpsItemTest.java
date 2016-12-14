@@ -61,7 +61,7 @@ public class LocationDumpsItemTest extends TestCase {
     }
 
     /**
-     * Test that {@link LocationDumpsItem#getLocationDumps()} returns correctly.
+     * Test that {@link LocationDumpsItem#getLocationClients()} returns correctly.
      */
     public void testGetLocationDumps() {
         LocationDumpsItem item = new LocationDumpsItem();

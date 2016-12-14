@@ -17,9 +17,6 @@ package com.android.loganalysis.item;
 
 import junit.framework.TestCase;
 
-import com.android.loganalysis.item.DvmLockSampleItem;
-import com.android.loganalysis.parser.DvmLockSampleParser;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,7 +50,7 @@ public class DvmLockSampleItemTest extends TestCase {
         assertEquals(75, output.get(DvmLockSampleItem.WAIT_TIME));
         assertEquals("AccessibilityCache.java", output.get(DvmLockSampleItem.WAITING_SOURCE_FILE));
         assertEquals(256, output.get(DvmLockSampleItem.WAITING_SOURCE_LINE));
-        assertEquals("AccessibilityCache.java", output.get(DvmLockSampleItem.OWNER_FILE_NAME));
+        assertEquals("-", output.get(DvmLockSampleItem.OWNER_FILE_NAME));
         assertEquals(96, output.get(DvmLockSampleItem.OWNER_ACQUIRE_SOURCE_LINE));
         assertEquals(15, output.get(DvmLockSampleItem.SAMPLE_PERCENTAGE));
     }

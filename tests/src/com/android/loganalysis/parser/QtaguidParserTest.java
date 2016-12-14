@@ -19,10 +19,6 @@ import com.android.loganalysis.item.QtaguidItem;
 
 import junit.framework.TestCase;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Arrays;
 import java.util.List;
 

@@ -16,7 +16,6 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.ActivityServiceItem;
-import com.android.loganalysis.item.DumpsysItem;
 
 import junit.framework.TestCase;
 

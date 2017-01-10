@@ -15,8 +15,6 @@
  */
 package com.android.loganalysis.item;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +42,7 @@ public class DvmLockSampleItem extends GenericItem {
             WAITING_SOURCE_FILE, WAITING_SOURCE_LINE, OWNER_FILE_NAME,
             OWNER_ACQUIRE_SOURCE_LINE, SAMPLE_PERCENTAGE));
 
+    @SuppressWarnings("serial")
     private static final Map<String, Class<?>> TYPES = new HashMap<String, Class<?>>() {{
         put(PROCESS_NAME, String.class);
         put(SENSITIVITY_FLAG, Boolean.class);

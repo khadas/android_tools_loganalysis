@@ -86,9 +86,7 @@ public class GenericItem implements IItem {
         return mergedAttributes;
     }
 
-    /**
-     * {@inhertiDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConsistent(IItem other) {
         if (this == other) {
@@ -126,6 +124,17 @@ public class GenericItem implements IItem {
             }
         }
         return true;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public int hashCode() {
+        int result = 13;
+        for (String attribute : mAllowedAttributes) {
+            Object val = getAttribute(attribute);
+            result += 37 * (val == null ? 0 : val.hashCode());
+        }
+        return result;
     }
 
     /**

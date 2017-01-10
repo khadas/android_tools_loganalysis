@@ -498,6 +498,16 @@ public class LogcatParser implements IParser {
             }
             return false;
         }
+
+        /** {@inheritdoc} */
+        @Override
+        public int hashCode() {
+            // Since both mLevel and mTag can be wild cards, we can't actually use them to generate
+            // a hashcode without potentially violating the hashcode contract. That doesn't leave
+            // us with anything to actually use to generate the hashcode, so just return a random
+            // static int.
+            return 145800969;
+        }
     }
 
     /**

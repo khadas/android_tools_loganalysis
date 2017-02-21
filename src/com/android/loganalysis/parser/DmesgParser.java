@@ -16,11 +16,14 @@
 
 package com.android.loganalysis.parser;
 
+import com.android.loganalysis.item.DmesgActionInfoItem;
 import com.android.loganalysis.item.IItem;
-import com.android.loganalysis.item.ServiceInfoItem;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.android.loganalysis.item.DmesgServiceInfoItem;
+import com.android.loganalysis.item.DmesgStageInfoItem;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.rmi.server.ServerCloneException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +39,8 @@ public class DmesgParser implements IParser {
 
     private static final String SERVICENAME = "SERVICENAME";
     private static final String TIMESTAMP = "TIMESTAMP";
+    private static final String STAGE = "STAGE";
+    private static final String ACTION = "ACTION";
     // Matches: [ 14.822691] init:
     private static final String SERVICE_PREFIX = String.format("^\\[\\s+(?<%s>.*)\\] init:\\s+",
             TIMESTAMP);
@@ -51,7 +56,29 @@ public class DmesgParser implements IParser {
     private static final Pattern EXIT_SERVICE = Pattern.compile(
             String.format("%s%s", SERVICE_PREFIX, EXIT_SERVICE_SUFFIX));
 
-    private Map<String, ServiceInfoItem> mServiceInfoItems = new HashMap<String, ServiceInfoItem>();
+    // Matches: init first stage started!
+    // Matches: init second stage started!
+    private static final String START_STAGE_PREFIX = String.format("init (?<%s>.*) stage started!",
+            STAGE);
+
+    // Matches: [   13.647997] init: init first stage started!
+    private static final Pattern START_STAGE = Pattern.compile(
+            String.format("%s%s", SERVICE_PREFIX, START_STAGE_PREFIX));
+
+    // Matches: init: processing action (early-init)
+    // must not match: init: processing action (vold.decrypt=trigger_restart_framework)
+    private static final String START_PROCESSING_ACTION_PREFIX = String.format(
+            "processing action \\((?<%s>[^=]+)\\)", ACTION);
+
+    // Matches: [   14.942872] init: processing action (early-init)
+    // Does not match: [   22.361049] init: processing action (persist.sys.usb.config=* boot)
+    private static final Pattern START_PROCESSING_ACTION = Pattern.compile(
+            String.format("%s%s", SERVICE_PREFIX, START_PROCESSING_ACTION_PREFIX));
+
+    private Map<String, DmesgServiceInfoItem> mServiceInfoItems =
+            new HashMap<String, DmesgServiceInfoItem>();
+    private List<DmesgStageInfoItem> mStageInfoItems = new ArrayList<>();
+    private List<DmesgActionInfoItem> mActionInfoItems = new ArrayList<>();
 
     @Override
     public IItem parse(List<String> lines) {
@@ -60,34 +87,102 @@ public class DmesgParser implements IParser {
     }
 
     /**
-     * Parse init services start time and end time from dmesg logs and store the duration it took to
-     * complete the service if the end time stamp is available.
+     * Parse the kernel log till EOF to retrieve the duration of the service calls, start times of
+     * different boot stages and actions taken. Besides, while parsing these informations are stored
+     * in the intermediate {@link DmesgServiceInfoItem}, {@link DmesgStageInfoItem} and
+     * {@link DmesgActionInfoItem} objects
      *
-     * @param input dmesg logs
-     * @return list of ServiceInfoItems which contains service start and end time
+     * @param input dmesg log
      * @throws IOException
      */
-    public List<ServiceInfoItem> parseServiceInfo(BufferedReader input)
-            throws IOException {
+    public void parseInfo(BufferedReader bufferedLog) throws IOException {
         String line;
-        while ((line = input.readLine()) != null) {
-            Matcher match = null;
-            if ((match = matches(START_SERVICE, line)) != null) {
-                ServiceInfoItem serviceItem = new ServiceInfoItem();
-                serviceItem.setServiceName(match.group(SERVICENAME));
-                serviceItem.setStartTime((long) (Double.parseDouble(
-                        match.group(TIMESTAMP)) * 1000));
-                getServiceInfoItems().put(match.group(SERVICENAME), serviceItem);
-            } else if ((match = matches(EXIT_SERVICE, line)) != null) {
-                if (getServiceInfoItems().containsKey(match.group(SERVICENAME))) {
-                    ServiceInfoItem serviceItem = getServiceInfoItems().get(
-                            match.group(SERVICENAME));
-                    serviceItem.setEndTime((long) (Double.parseDouble(
-                            match.group(TIMESTAMP)) * 1000));
-                }
+        while ((line = bufferedLog.readLine()) != null) {
+            if (parseServiceInfo(line)) {
+                continue;
+            }
+            if (parseStageInfo(line)) {
+                continue;
+            }
+            if (parseActionInfo(line)) {
+                continue;
             }
         }
-        return new ArrayList<ServiceInfoItem>(getServiceInfoItems().values());
+    }
+
+    /**
+     * Parse init services {@code start time} and {@code end time} from each {@code line} of dmesg
+     * log and store the {@code duration} it took to complete the service if the end time stamp is
+     * available in {@link DmesgServiceInfoItem}.
+     *
+     * @param individual line of the dmesg log
+     * @return {@code true}, if the {@code line} indicates start or end of a service,
+     *         {@code false}, otherwise
+     */
+    @VisibleForTesting
+    boolean parseServiceInfo(String line) {
+        Matcher match = null;
+        if ((match = matches(START_SERVICE, line)) != null) {
+            DmesgServiceInfoItem serviceItem = new DmesgServiceInfoItem();
+            serviceItem.setServiceName(match.group(SERVICENAME));
+            serviceItem.setStartTime((long) (Double.parseDouble(
+                    match.group(TIMESTAMP)) * 1000));
+            getServiceInfoItems().put(match.group(SERVICENAME), serviceItem);
+            return true;
+        } else if ((match = matches(EXIT_SERVICE, line)) != null) {
+            if (getServiceInfoItems().containsKey(match.group(SERVICENAME))) {
+                DmesgServiceInfoItem serviceItem = getServiceInfoItems().get(
+                        match.group(SERVICENAME));
+                serviceItem.setEndTime((long) (Double.parseDouble(
+                        match.group(TIMESTAMP)) * 1000));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Parse init stages log from each {@code line} of dmesg log and
+     * store the stage name and start time in a {@link DmesgStageInfoItem} object
+     *
+     * @param individual line of the dmesg log
+     * @return {@code true}, if the {@code line} indicates start of a boot stage,
+     *         {@code false}, otherwise
+     */
+    @VisibleForTesting
+    boolean parseStageInfo(String line) {
+        Matcher match = null;
+        if ((match = matches(START_STAGE, line)) != null) {
+            DmesgStageInfoItem stageInfoItem = new DmesgStageInfoItem();
+            stageInfoItem.setStageName(match.group(STAGE));
+            stageInfoItem.setStartTime((long) (Double.parseDouble(
+                    match.group(TIMESTAMP)) * 1000));
+            mStageInfoItems.add(stageInfoItem);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Parse action from each {@code line} of dmesg log and store the action name and start time
+     * in {@link DmesgActionInfoItem} object
+     *
+     * @param individual {@code line} of the dmesg log
+     * @return {@code true}, if {@code line} indicates starting of processing of action
+     *         {@code false}, otherwise
+     */
+    @VisibleForTesting
+    boolean parseActionInfo(String line) {
+        Matcher match = null;
+        if ((match = matches(START_PROCESSING_ACTION, line)) != null) {
+            DmesgActionInfoItem actionInfoItem = new DmesgActionInfoItem();
+            actionInfoItem.setActionName(match.group(ACTION));
+            actionInfoItem.setStartTime((long) (Double.parseDouble(
+                    match.group(TIMESTAMP)) * 1000));
+            mActionInfoItems.add(actionInfoItem);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -101,12 +196,20 @@ public class DmesgParser implements IParser {
         return ret.matches() ? ret : null;
     }
 
-    public Map<String, ServiceInfoItem> getServiceInfoItems() {
+    public Map<String, DmesgServiceInfoItem> getServiceInfoItems() {
         return mServiceInfoItems;
     }
 
-    public void setServiceInfoItems(Map<String, ServiceInfoItem> serviceInfoItems) {
+    public void setServiceInfoItems(Map<String, DmesgServiceInfoItem> serviceInfoItems) {
         this.mServiceInfoItems = serviceInfoItems;
+    }
+
+    public List<DmesgStageInfoItem> getStageInfoItems() {
+        return mStageInfoItems;
+    }
+
+    public List<DmesgActionInfoItem> getActionInfoItems() {
+        return mActionInfoItems;
     }
 
 }

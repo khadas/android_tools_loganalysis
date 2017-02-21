@@ -21,9 +21,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * An {@link IItem} used to store service info logged in dmesg
+ * An {@link IItem} used to store service info logged in dmesg.
  */
-public class ServiceInfoItem extends GenericItem {
+public class DmesgServiceInfoItem extends GenericItem {
 
     /** Constant for JSON output */
     public static final String SERVICE_NAME = "SERVICE_NAME";
@@ -38,9 +38,9 @@ public class ServiceInfoItem extends GenericItem {
             SERVICE_NAME, SERVICE_START_TIME, SERVICE_END_TIME));
 
     /**
-     * The constructor for {@link ServiceInfoItem}.
+     * The constructor for {@link DmesgServiceInfoItem}.
      */
-    public ServiceInfoItem() {
+    public DmesgServiceInfoItem() {
         super(ATTRIBUTES);
     }
 

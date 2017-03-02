@@ -51,8 +51,8 @@ public class KernelLogItem extends GenericItem {
     public KernelLogItem() {
         super(ATTRIBUTES);
 
-        setAttribute(START_TIME, new Double(0.0));
-        setAttribute(STOP_TIME, new Double(0.0));
+        setAttribute(START_TIME, Double.valueOf(0.0));
+        setAttribute(STOP_TIME, Double.valueOf(0.0));
         setAttribute(EVENTS, new ItemList());
     }
 

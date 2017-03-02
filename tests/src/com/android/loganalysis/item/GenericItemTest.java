@@ -137,9 +137,8 @@ public class GenericItemTest extends TestCase {
         assertFalse(mFullItem1.isConsistent(mInconsistentItem));
     }
 
-    /**
-     * Test {@link GenericItem#equals(Object)}.
-     */
+    /** Test {@link GenericItem#equals(Object)}. */
+    @SuppressWarnings("SelfEquals")
     public void testEquals() {
         assertTrue(mEmptyItem1.equals(mEmptyItem1));
         assertFalse(mEmptyItem1.equals(null));

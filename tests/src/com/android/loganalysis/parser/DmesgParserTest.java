@@ -108,14 +108,18 @@ public class DmesgParserTest extends TestCase {
         assertEquals("There should be atleast one service info", 1, serviceInfoItems.size());
         assertEquals("Service name is not boot anim", BOOT_ANIMATION,
                 serviceInfoItems.get(0).getServiceName());
-        assertEquals("Service start time is not correct", new Long(22962),
-                serviceInfoItems.get(0)
-                        .getStartTime());
-        assertEquals("Service end time is not correct", new Long(39855), serviceInfoItems.get(0)
-                .getEndTime());
-        assertEquals("Service duration is nott correct", new Long(16893),
-                serviceInfoItems.get(0)
-                        .getServiceDuration());
+        assertEquals(
+                "Service start time is not correct",
+                Long.valueOf(22962),
+                serviceInfoItems.get(0).getStartTime());
+        assertEquals(
+                "Service end time is not correct",
+                Long.valueOf(39855),
+                serviceInfoItems.get(0).getEndTime());
+        assertEquals(
+                "Service duration is nott correct",
+                Long.valueOf(16893),
+                serviceInfoItems.get(0).getServiceDuration());
     }
 
     /**

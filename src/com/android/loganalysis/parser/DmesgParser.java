@@ -17,13 +17,14 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.DmesgActionInfoItem;
-import com.android.loganalysis.item.IItem;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.loganalysis.item.DmesgServiceInfoItem;
 import com.android.loganalysis.item.DmesgStageInfoItem;
+import com.android.loganalysis.item.IItem;
+
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.rmi.server.ServerCloneException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

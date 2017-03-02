@@ -32,28 +32,33 @@ import java.util.regex.Pattern;
  */
 public class DvmLockSampleParser implements IParser {
 
-    private static final String nameRegex = "([^,]+)";
-    private static final String fileRegex = "(-|[A-Za-z]+\\.[A-Za-z]+)";
-    private static final String intRegex = "(\\d+)";
+    private static final String NAME_REGEX = "([^,]+)";
+    private static final String FILE_REGEX = "(-|[A-Za-z]+\\.[A-Za-z]+)";
+    private static final String INT_REGEX = "(\\d+)";
 
     /**
      * Matches the DVM lock sample log format:
      *
-     * 09-04 05:40:07.809  1026 10592 I dvm_lock_sample:
+     * <p>09-04 05:40:07.809 1026 10592 I dvm_lock_sample:
      * [system_server,1,Binder:1026_F,46,NetworkPolicyManagerService.java,2284,-,802,9]
      */
-    private static final Pattern logContentionEventPattern = Pattern.compile(
-            "\\[" + String.join(",\\s*", Arrays.asList(
-                    nameRegex,  // Process name
-                    intRegex,   // Process sensitivity flag
-                    nameRegex,  // Waiting thread name
-                    intRegex,   // Wait time
-                    fileRegex,  // Waiting Source File
-                    intRegex,   // Waiting Source Line
-                    fileRegex,  // Owner File Name ("-" if the same)
-                    intRegex,   // Owner Acquire Source Line
-                    intRegex    // Sample Percentage
-            )) + "\\]");
+    private static final Pattern LOG_CONTENTION_EVENT_PATTERN =
+            Pattern.compile(
+                    "\\["
+                            + String.join(
+                                    ",\\s*",
+                                    Arrays.asList(
+                                            NAME_REGEX, // Process name
+                                            INT_REGEX, // Process sensitivity flag
+                                            NAME_REGEX, // Waiting thread name
+                                            INT_REGEX, // Wait time
+                                            FILE_REGEX, // Waiting Source File
+                                            INT_REGEX, // Waiting Source Line
+                                            FILE_REGEX, // Owner File Name ("-" if the same)
+                                            INT_REGEX, // Owner Acquire Source Line
+                                            INT_REGEX // Sample Percentage
+                                            ))
+                            + "\\]");
 
     private DvmLockSampleItem mItem = new DvmLockSampleItem();
 
@@ -83,7 +88,7 @@ public class DvmLockSampleParser implements IParser {
         DvmLockSampleItem mItem = new DvmLockSampleItem();
 
         for (String line : lines) {
-            Matcher m = logContentionEventPattern.matcher(line);
+            Matcher m = LOG_CONTENTION_EVENT_PATTERN.matcher(line);
 
             if(m.matches()) {
                 mItem.setAttribute(DvmLockSampleItem.PROCESS_NAME,

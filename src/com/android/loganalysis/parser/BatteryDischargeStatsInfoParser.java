@@ -17,7 +17,6 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.BatteryDischargeStatsInfoItem;
-import com.android.loganalysis.item.BatteryStatsSummaryInfoItem;
 import com.android.loganalysis.util.NumberFormattingUtil;
 
 import java.util.List;
@@ -29,11 +28,9 @@ import java.util.regex.Pattern;
  */
 public class BatteryDischargeStatsInfoParser extends AbstractSectionParser {
 
-    /**
-     * Matches; #47: +5m5s105ms to 47 (screen-on, power-save-off, device-idle-off)
-     */
-    private static Pattern DISCHARGE_STEP_PATTERN = Pattern
-        .compile("^.*: \\+((\\d+)h)?((\\d+)m)?((\\d+)s)?(\\d+)ms.* to (\\d+).*");
+    /** Matches; #47: +5m5s105ms to 47 (screen-on, power-save-off, device-idle-off) */
+    private static final Pattern DISCHARGE_STEP_PATTERN =
+            Pattern.compile("^.*: \\+((\\d+)h)?((\\d+)m)?((\\d+)s)?(\\d+)ms.* to (\\d+).*");
 
     /**
      * {@inheritDoc}

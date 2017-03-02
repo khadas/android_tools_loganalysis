@@ -22,44 +22,41 @@ import junit.framework.TestCase;
  * Unit tests for {@link OptionUpdateRule}
  */
 public class OptionUpdateRuleTest extends TestCase {
-    private static final String mOptionName = "option-name";
-    private static final Object mCurrent = "5 current value";
-    private static final Object mUpdate = "5 update value";
-    private static final Object mSmallUpdate = "0 update value";
-    private static final Object mBigUpdate = "9 update value";
+    private static final String OPTION_NAME = "option-name";
+    private static final Object CURRENT = "5 current value";
+    private static final Object UPDATE = "5 update value";
+    private static final Object SMALL_UPDATE = "0 update value";
+    private static final Object BIG_UPDATE = "9 update value";
 
     public void testFirst_simple() throws Exception {
-        assertEquals(mUpdate, OptionUpdateRule.FIRST.update(mOptionName, null, mUpdate));
-        assertEquals(mCurrent, OptionUpdateRule.FIRST.update(mOptionName, mCurrent, mUpdate));
+        assertEquals(UPDATE, OptionUpdateRule.FIRST.update(OPTION_NAME, null, UPDATE));
+        assertEquals(CURRENT, OptionUpdateRule.FIRST.update(OPTION_NAME, CURRENT, UPDATE));
     }
 
     public void testLast_simple() throws Exception {
-        assertEquals(mUpdate, OptionUpdateRule.LAST.update(mOptionName, null, mUpdate));
-        assertEquals(mUpdate, OptionUpdateRule.LAST.update(mOptionName, mCurrent, mUpdate));
+        assertEquals(UPDATE, OptionUpdateRule.LAST.update(OPTION_NAME, null, UPDATE));
+        assertEquals(UPDATE, OptionUpdateRule.LAST.update(OPTION_NAME, CURRENT, UPDATE));
     }
 
     public void testGreatest_simple() throws Exception {
-        assertEquals(mSmallUpdate,
-                OptionUpdateRule.GREATEST.update(mOptionName, null, mSmallUpdate));
-        assertEquals(mCurrent,
-                OptionUpdateRule.GREATEST.update(mOptionName, mCurrent, mSmallUpdate));
-        assertEquals(mBigUpdate,
-                OptionUpdateRule.GREATEST.update(mOptionName, mCurrent, mBigUpdate));
+        assertEquals(
+                SMALL_UPDATE, OptionUpdateRule.GREATEST.update(OPTION_NAME, null, SMALL_UPDATE));
+        assertEquals(CURRENT, OptionUpdateRule.GREATEST.update(OPTION_NAME, CURRENT, SMALL_UPDATE));
+        assertEquals(
+                BIG_UPDATE, OptionUpdateRule.GREATEST.update(OPTION_NAME, CURRENT, BIG_UPDATE));
     }
 
     public void testLeast_simple() throws Exception {
-        assertEquals(mBigUpdate,
-                OptionUpdateRule.LEAST.update(mOptionName, null, mBigUpdate));
-        assertEquals(mSmallUpdate,
-                OptionUpdateRule.LEAST.update(mOptionName, mCurrent, mSmallUpdate));
-        assertEquals(mCurrent,
-                OptionUpdateRule.LEAST.update(mOptionName, mCurrent, mBigUpdate));
+        assertEquals(BIG_UPDATE, OptionUpdateRule.LEAST.update(OPTION_NAME, null, BIG_UPDATE));
+        assertEquals(
+                SMALL_UPDATE, OptionUpdateRule.LEAST.update(OPTION_NAME, CURRENT, SMALL_UPDATE));
+        assertEquals(CURRENT, OptionUpdateRule.LEAST.update(OPTION_NAME, CURRENT, BIG_UPDATE));
     }
 
     public void testImmutable_simple() throws Exception {
-        assertEquals(mUpdate, OptionUpdateRule.IMMUTABLE.update(mOptionName, null, mUpdate));
+        assertEquals(UPDATE, OptionUpdateRule.IMMUTABLE.update(OPTION_NAME, null, UPDATE));
         try {
-            OptionUpdateRule.IMMUTABLE.update(mOptionName, mCurrent, mUpdate);
+            OptionUpdateRule.IMMUTABLE.update(OPTION_NAME, CURRENT, UPDATE);
             fail("ConfigurationException not thrown when updating an IMMUTABLE option");
         } catch (ConfigurationException e) {
             // expected
@@ -69,7 +66,7 @@ public class OptionUpdateRuleTest extends TestCase {
     public void testInvalidComparison() throws Exception {
         try {
             // Strings aren't comparable with integers
-            OptionUpdateRule.GREATEST.update(mOptionName, 13, mUpdate);
+            OptionUpdateRule.GREATEST.update(OPTION_NAME, 13, UPDATE);
             fail("ConfigurationException not thrown for invalid comparison.");
         } catch (ConfigurationException e) {
             // Expected.  Moreover, the exception should be actionable, so make sure we mention the
@@ -82,7 +79,7 @@ public class OptionUpdateRuleTest extends TestCase {
 
     public void testNotComparable() throws Exception {
         try {
-            OptionUpdateRule.LEAST.update(mOptionName, new Exception("hi"), mUpdate);
+            OptionUpdateRule.LEAST.update(OPTION_NAME, new Exception("hi"), UPDATE);
         } catch (ConfigurationException e) {
             // expected
         }

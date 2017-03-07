@@ -17,16 +17,14 @@
 package com.android.loganalysis.parser;
 
 import com.android.loganalysis.item.DmesgActionInfoItem;
+import com.android.loganalysis.item.DmesgItem;
 import com.android.loganalysis.item.DmesgServiceInfoItem;
 import com.android.loganalysis.item.DmesgStageInfoItem;
-import com.android.loganalysis.item.IItem;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -76,15 +74,19 @@ public class DmesgParser implements IParser {
     private static final Pattern START_PROCESSING_ACTION = Pattern.compile(
             String.format("%s%s", SERVICE_PREFIX, START_PROCESSING_ACTION_PREFIX));
 
-    private Map<String, DmesgServiceInfoItem> mServiceInfoItems =
-            new HashMap<String, DmesgServiceInfoItem>();
-    private List<DmesgStageInfoItem> mStageInfoItems = new ArrayList<>();
-    private List<DmesgActionInfoItem> mActionInfoItems = new ArrayList<>();
 
+    private DmesgItem mDmesgItem = new DmesgItem();
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public IItem parse(List<String> lines) {
-        throw new UnsupportedOperationException("Method has not been implemented in lieu"
-                + " of others");
+    public DmesgItem parse(List<String> lines) {
+        for (String line : lines) {
+            parse(line);
+        }
+
+        return mDmesgItem;
     }
 
     /**
@@ -96,18 +98,38 @@ public class DmesgParser implements IParser {
      * @param input dmesg log
      * @throws IOException
      */
-    public void parseInfo(BufferedReader bufferedLog) throws IOException {
+    public DmesgItem parseInfo(BufferedReader bufferedLog) throws IOException {
         String line;
         while ((line = bufferedLog.readLine()) != null) {
-            if (parseServiceInfo(line)) {
-                continue;
-            }
-            if (parseStageInfo(line)) {
-                continue;
-            }
-            if (parseActionInfo(line)) {
-                continue;
-            }
+            parse(line);
+        }
+
+        return mDmesgItem;
+    }
+
+    /**
+     * <p>
+     * Parse single line of the dmesg log to retrieve the duration of the service calls or start
+     * times of different boot stages or start times of actions taken based on the info contained in
+     * the line.
+     * </p>
+     * <p>
+     * Besides, while parsing these informations are stored in the intermediate
+     * {@link DmesgServiceInfoItem}, {@link DmesgStageInfoItem} and {@link DmesgActionInfoItem}
+     * objects
+     * </p>
+     *
+     * @param line individual line of the dmesg log
+     */
+    private void parse(String line) {
+        if (parseServiceInfo(line)) {
+            return;
+        }
+        if (parseStageInfo(line)) {
+            return;
+        }
+        if (parseActionInfo(line)) {
+            return;
         }
     }
 
@@ -158,7 +180,7 @@ public class DmesgParser implements IParser {
             stageInfoItem.setStageName(match.group(STAGE));
             stageInfoItem.setStartTime((long) (Double.parseDouble(
                     match.group(TIMESTAMP)) * 1000));
-            mStageInfoItems.add(stageInfoItem);
+            mDmesgItem.addStageInfoItem(stageInfoItem);
             return true;
         }
         return false;
@@ -180,7 +202,7 @@ public class DmesgParser implements IParser {
             actionInfoItem.setActionName(match.group(ACTION));
             actionInfoItem.setStartTime((long) (Double.parseDouble(
                     match.group(TIMESTAMP)) * 1000));
-            mActionInfoItems.add(actionInfoItem);
+            mDmesgItem.addActionInfoItem(actionInfoItem);
             return true;
         }
         return false;
@@ -198,19 +220,21 @@ public class DmesgParser implements IParser {
     }
 
     public Map<String, DmesgServiceInfoItem> getServiceInfoItems() {
-        return mServiceInfoItems;
+        return mDmesgItem.getServiceInfoItems();
     }
 
     public void setServiceInfoItems(Map<String, DmesgServiceInfoItem> serviceInfoItems) {
-        this.mServiceInfoItems = serviceInfoItems;
+        for(String key : serviceInfoItems.keySet()) {
+            mDmesgItem.addServiceInfoItem(key, serviceInfoItems.get(key));
+        }
     }
 
     public List<DmesgStageInfoItem> getStageInfoItems() {
-        return mStageInfoItems;
+        return mDmesgItem.getStageInfoItems();
     }
 
     public List<DmesgActionInfoItem> getActionInfoItems() {
-        return mActionInfoItems;
+        return mDmesgItem.getActionInfoItems();
     }
 
 }

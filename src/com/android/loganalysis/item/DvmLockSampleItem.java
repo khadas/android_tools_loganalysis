@@ -59,9 +59,8 @@ public class DvmLockSampleItem extends GenericItem {
         super(ATTRIBUTES);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void setAttribute(String attribute, Object value) throws IllegalArgumentException {
         if(ATTRIBUTES.contains(attribute)) {
             if (TYPES.get(attribute).isAssignableFrom(value.getClass())) {
@@ -77,9 +76,8 @@ public class DvmLockSampleItem extends GenericItem {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Object getAttribute(String attribute) throws IllegalArgumentException {
         return super.getAttribute(attribute);
     }

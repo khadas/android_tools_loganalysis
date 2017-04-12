@@ -95,7 +95,7 @@ public class DmesgParserTest extends TestCase {
                 dmesgParser.getServiceInfoItems().size());
         assertEquals("Stage info items list size should be 2", 2,
                 dmesgParser.getStageInfoItems().size());
-        assertEquals("Action info items list size should be 5", 5,
+        assertEquals("Action info items list size should be 8", 8,
                 dmesgParser.getActionInfoItems().size());
 
         assertEquals(EXPECTED_SERVICE_INFO_ITEMS, actualDmesgItem.getServiceInfoItems());
@@ -115,7 +115,7 @@ public class DmesgParserTest extends TestCase {
                     dmesgParser.getServiceInfoItems().size());
             assertEquals("Stage info items list size should be 2", 2,
                     dmesgParser.getStageInfoItems().size());
-            assertEquals("Action info items list size should be 5", 5,
+            assertEquals("Action info items list size should be 8", 8,
                     dmesgParser.getActionInfoItems().size());
         }
     }
@@ -207,7 +207,7 @@ public class DmesgParserTest extends TestCase {
             dmesgParser.parseActionInfo(line);
         }
         List<DmesgActionInfoItem> actualActionInfoItems = dmesgParser.getActionInfoItems();
-        assertEquals(5, actualActionInfoItems.size());
+        assertEquals(8, actualActionInfoItems.size());
         assertEquals(EXPECTED_ACTION_INFO_ITEMS, actualActionInfoItems);
     }
 
@@ -219,8 +219,14 @@ public class DmesgParserTest extends TestCase {
                 new DmesgActionInfoItem("set_kptr_restrict",
                         (long) (Double.parseDouble("47240.083"))),
                 new DmesgActionInfoItem("keychord_init", (long) (Double.parseDouble("47245.778"))),
+                new DmesgActionInfoItem("persist.sys.usb.config=* boot",
+                        (long) (Double.parseDouble("52361.049"))),
                 new DmesgActionInfoItem("enable_property_trigger",
-                        (long) (Double.parseDouble("52361.108"))));
+                        (long) (Double.parseDouble("52361.108"))),
+                new DmesgActionInfoItem("security.perf_harden=1",
+                        (long) (Double.parseDouble("52361.313"))),
+                new DmesgActionInfoItem("ro.debuggable=1",
+                        (long) (Double.parseDouble("52361.495"))));
     }
 
     private static List<DmesgStageInfoItem> getExpectedStageInfoItems() {

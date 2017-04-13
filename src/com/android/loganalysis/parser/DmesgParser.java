@@ -20,7 +20,6 @@ import com.android.loganalysis.item.DmesgActionInfoItem;
 import com.android.loganalysis.item.DmesgItem;
 import com.android.loganalysis.item.DmesgServiceInfoItem;
 import com.android.loganalysis.item.DmesgStageInfoItem;
-
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.BufferedReader;
@@ -65,12 +64,10 @@ public class DmesgParser implements IParser {
             String.format("%s%s", SERVICE_PREFIX, START_STAGE_PREFIX));
 
     // Matches: init: processing action (early-init)
-    // must not match: init: processing action (vold.decrypt=trigger_restart_framework)
     private static final String START_PROCESSING_ACTION_PREFIX = String.format(
-            "processing action \\((?<%s>[^=]+)\\)", ACTION);
+            "processing action \\((?<%s>.*)\\)", ACTION);
 
     // Matches: [   14.942872] init: processing action (early-init)
-    // Does not match: [   22.361049] init: processing action (persist.sys.usb.config=* boot)
     private static final Pattern START_PROCESSING_ACTION = Pattern.compile(
             String.format("%s%s", SERVICE_PREFIX, START_PROCESSING_ACTION_PREFIX));
 

@@ -35,24 +35,14 @@ public class EventsLogParser implements IParser {
     // 08-21 17:53:53.876 1053 2135
     private static final String EVENTS_PREFIX = "^\\d{2}-\\d{2} \\d{2}:\\d{2}"
             + ":\\d{2}.\\d{3}\\s+\\d+\\s+\\d+ ";
-    // 08-21 17:53:53.876 1053 2135 I am_restart_activity:
-    // [0,188098346,127,com.google.android.gm/.ConversationListActivityGmail]
-    private static final Pattern ACTIVITY_RESTART = Pattern.compile(
-            String.format("%s%s", EVENTS_PREFIX, "I am_restart_activity: "
-                    + "\\[\\d+\\,\\d+\\,\\d+\\,(?<componentname>.*)\\]$"));
-    // 08-21 17:53:53.876 1053 2135 I am_resume_activity:
-    // [0,228277756,132,com.google.android.gm/.ConversationListActivityGmail]
-    private static final Pattern ACTIVITY_RESUME = Pattern.compile(
-            String.format("%s%s", EVENTS_PREFIX, "I am_resume_activity: "
-                    + "\\[\\d+\\,\\d+\\,\\d+\\,(?<componentname>.*)\\]$"));
-    // 08-21 17:53:53.876 1053 2135 I sysui_action: [321,74]
-    private static final Pattern STARTING_WINDOW_DELAY = Pattern.compile(
-            String.format("%s%s", EVENTS_PREFIX, "I sysui_action: \\[321,"
-                    + "(?<startdelay>.*)\\]$"));
-    // 08-21 17:53:53.876 1053 2135 I sysui_action: [319,99]
+
+    // 01-01 01:38:44.863  1037  1111 I sysui_multi_action:
+    // [319,64,321,64,322,99,325,5951,757,761,758,9,759,4,806,com.google.android.gm,871,
+    // com.google.android.gm.welcome.WelcomeTourActivity,905,0]
     private static final Pattern TRANSITION_DELAY = Pattern.compile(
-            String.format("%s%s", EVENTS_PREFIX, "I sysui_action: \\[319,"
-                    + "(?<transitdelay>.*)\\]$"));
+            String.format("%s%s", EVENTS_PREFIX, "I sysui_multi_action: \\[319,(.*),321,(.*)"
+                    + ",322,(.*),806,(.*),871,(.*),905.*\\]$"));
+
     // 08-21 17:53:53.876 1053 2135 I sysui_latency: [1,50]
     private static final Pattern ACTION_LATENCY = Pattern.compile(
             String.format("%s%s", EVENTS_PREFIX, "I sysui_latency: \\[(?<action>.*),"
@@ -75,30 +65,13 @@ public class EventsLogParser implements IParser {
             throws IOException {
         List<TransitionDelayItem> transitionDelayItems = new ArrayList<TransitionDelayItem>();
         String line;
-        List<String> componentNameStack = new ArrayList<String>();
-        boolean isRecentStartWindowDelay = false;
         while ((line = input.readLine()) != null) {
             Matcher match = null;
-            if ((match = matches(ACTIVITY_RESTART, line)) != null ||
-                    ((match = matches(ACTIVITY_RESUME, line)) != null)) {
-                componentNameStack.add(match.group("componentname"));
-                isRecentStartWindowDelay = false;
-            } else if (((match = matches(STARTING_WINDOW_DELAY, line)) != null)
-                    && (componentNameStack.size() > 0)) {
+            if (((match = matches(TRANSITION_DELAY, line)) != null)) {
                 TransitionDelayItem delayItem = new TransitionDelayItem();
-                delayItem.setComponentName(
-                        componentNameStack.remove(componentNameStack.size() - 1));
-                delayItem.setStartingWindowDelay(Long.parseLong(match.group("startdelay")));
-                delayItem.setTransitionDelay(-1);
-                transitionDelayItems.add(delayItem);
-                isRecentStartWindowDelay = true;
-            } else if (((match = matches(TRANSITION_DELAY, line)) != null)
-                    && (componentNameStack.size() > 0) && !isRecentStartWindowDelay) {
-                TransitionDelayItem delayItem = new TransitionDelayItem();
-                delayItem.setComponentName(
-                        componentNameStack.remove(componentNameStack.size() - 1));
-                delayItem.setTransitionDelay(Long.parseLong(match.group("transitdelay")));
-                delayItem.setStartingWindowDelay(-1);
+                delayItem.setComponentName(match.group(4) + "/" + match.group(5));
+                delayItem.setTransitionDelay(Long.parseLong(match.group(1)));
+                delayItem.setStartingWindowDelay(Long.parseLong(match.group(2)));
                 transitionDelayItems.add(delayItem);
             }
         }

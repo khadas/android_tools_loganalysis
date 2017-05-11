@@ -71,7 +71,7 @@ public class EventsLogParserTest extends TestCase {
     }
 
     /**
-     * Test for Cold launch transition delay info
+     * Test for Cold launch transition delay and starting window delay info
      */
     public void testValidTransitionDelay() throws IOException {
         List<String> lines = Arrays
@@ -90,6 +90,26 @@ public class EventsLogParserTest extends TestCase {
                 transitionItems.get(0).getTransitionDelay());
         assertEquals("Starting window delay is not parsed correctly", 59,
                 transitionItems.get(0).getStartingWindowDelay());
+    }
+
+    /**
+     * Test for only transition delay in hot launch
+     */
+    public void testOnlyTransitionDelay() throws IOException {
+        List<String> lines = Arrays
+                .asList("01-02 08:12:10.849   934   986 I sysui_multi_action: [319,42,322,208,325,84100,757,761,758,9,759,4,806,com.google.android.apps.maps,871,com.google.android.maps.MapsActivity,905,0]",
+                        "01-02 08:12:16.895  1446  1446 I sysui_multi_action: [757,803,799,overview_trigger_nav_btn,802,1]",
+                        "01-02 08:12:16.895  1446  1446 I sysui_multi_action: [757,803,799,overview_source_app,802,1]",
+                        "01-02 08:12:16.895  1446  1446 I sysui_multi_action: [757,804,799,overview_source_app_index,801,8,802,1]");
+        List<TransitionDelayItem> transitionItems = (new EventsLogParser()).
+                parseTransitionDelayInfo(readInputBuffer(getTempFile(lines)));
+        assertEquals("Transition Delay items list should have one item", 1,
+                transitionItems.size());
+        assertEquals("Component name not parsed correctly",
+                "com.google.android.apps.maps/com.google.android.maps.MapsActivity",
+                transitionItems.get(0).getComponentName());
+        assertEquals("Transition delay is not parsed correctly", 42,
+                transitionItems.get(0).getTransitionDelay());
     }
 
     /**
@@ -141,7 +161,7 @@ public class EventsLogParserTest extends TestCase {
      */
     public void testInvalidTransitionPattern() throws IOException {
         List<String> lines = Arrays
-                .asList("01-02 08:11:58.691   934   986 I sysui_multi_action: [319,48,328,37,322,82,325,84088,757,761,758,9,759,4,806,com.google.android.calculator,871,com.android.calculator2.Calculator,905,0]",
+                .asList("01-02 08:11:58.691   934   986 I sysui_multi_action: [319,48,322,82,325,84088,757,761,758,9,759,4,807,com.google.android.calculator,871,com.android.calculator2.Calculator,905,0]",
                         "01-02 08:12:03.639   934   970 I sysui_multi_action: [757,803,799,window_time_0,802,5]",
                         "01-02 08:12:10.849   934   986 I sysui_multi_action: 319,42,321,59,322,208,325,84100,757,761,758,9,759,4,806,com.google.android.apps.maps,871,com.google.android.maps.MapsActivity,905,0]",
                         "01-02 08:12:16.895  1446  1446 I sysui_multi_action: [757,803,799,overview_trigger_nav_btn,802,1]",

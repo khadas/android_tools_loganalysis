@@ -39,9 +39,16 @@ public class EventsLogParser implements IParser {
     // 01-01 01:38:44.863  1037  1111 I sysui_multi_action:
     // [319,64,321,64,322,99,325,5951,757,761,758,9,759,4,806,com.google.android.gm,871,
     // com.google.android.gm.welcome.WelcomeTourActivity,905,0]
-    private static final Pattern TRANSITION_DELAY = Pattern.compile(
+    private static final Pattern TRANSITION_STARTING_DELAY = Pattern.compile(
             String.format("%s%s", EVENTS_PREFIX, "I sysui_multi_action: \\[319,(.*),321,(.*)"
                     + ",322,(.*),806,(.*),871,(.*),905.*\\]$"));
+
+    // 01-01 01:38:44.863  1037  1111 I sysui_multi_action:
+    // [319,64,322,99,325,5951,757,761,758,9,759,4,806,com.google.android.gm,871,
+    // com.google.android.gm.welcome.WelcomeTourActivity,905,0]
+    private static final Pattern TRANSITION_DELAY = Pattern.compile(
+            String.format("%s%s", EVENTS_PREFIX, "I sysui_multi_action: \\[319,(.*),322,(.*)"
+                    + ",806,(.*),871,(.*),905.*\\]$"));
 
     // 08-21 17:53:53.876 1053 2135 I sysui_latency: [1,50]
     private static final Pattern ACTION_LATENCY = Pattern.compile(
@@ -67,11 +74,16 @@ public class EventsLogParser implements IParser {
         String line;
         while ((line = input.readLine()) != null) {
             Matcher match = null;
-            if (((match = matches(TRANSITION_DELAY, line)) != null)) {
+            if (((match = matches(TRANSITION_STARTING_DELAY, line)) != null)) {
                 TransitionDelayItem delayItem = new TransitionDelayItem();
                 delayItem.setComponentName(match.group(4) + "/" + match.group(5));
                 delayItem.setTransitionDelay(Long.parseLong(match.group(1)));
                 delayItem.setStartingWindowDelay(Long.parseLong(match.group(2)));
+                transitionDelayItems.add(delayItem);
+            } else if (((match = matches(TRANSITION_DELAY, line)) != null)) {
+                TransitionDelayItem delayItem = new TransitionDelayItem();
+                delayItem.setComponentName(match.group(3) + "/" + match.group(4));
+                delayItem.setTransitionDelay(Long.parseLong(match.group(1)));
                 transitionDelayItems.add(delayItem);
             }
         }

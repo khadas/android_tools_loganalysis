@@ -37,6 +37,10 @@ public class CompactMemInfoItem implements IItem {
     public static final String ACTIVITIES_JSON_KEY = "activities";
     public static final String PROCESSES_JSON_KEY = "processes";
     public static final String LOST_RAM_JSON_KEY = "lostRam";
+    public static final String TOTAL_ZRAM_JSON_KEY = "totalZram";
+    public static final String FREE_SWAP_ZRAM_JSON_KEY = "freeSwapZram";
+    public static final String FREE_RAM_JSON_KEY = "freeRam";
+    public static final String TUNING_LEVEL_JSON_KEY = "tuningLevel";
     /** Constants for attributes HashMap */
     private static final String NAME_ATTR_KEY = "name";
     private static final String PSS_ATTR_KEY = "pss";
@@ -45,7 +49,11 @@ public class CompactMemInfoItem implements IItem {
     private static final String ACTIVITIES_ATTR_KEY = "activities";
 
     private Map<Integer, Map<String, Object>> mPids = new HashMap<Integer, Map<String, Object>>();
+    private long mFreeRam;
+    private long mFreeSwapZram;
     private long mLostRam;
+    private long mTotalZram;
+    private long mTuningLevel;
 
     @Override
     public IItem merge(IItem other) throws ConflictingItemException {
@@ -78,8 +86,12 @@ public class CompactMemInfoItem implements IItem {
         }
         try {
             object.put(PROCESSES_JSON_KEY, processes);
-            // Add the lost RAM field
+            // Add the additional non-process field
             object.put(LOST_RAM_JSON_KEY, getLostRam());
+            object.put(TOTAL_ZRAM_JSON_KEY, getTotalZram());
+            object.put(FREE_SWAP_ZRAM_JSON_KEY, getFreeSwapZram());
+            object.put(FREE_RAM_JSON_KEY, getFreeRam());
+            object.put(TUNING_LEVEL_JSON_KEY, getTuningLevel());
         } catch (JSONException e) {
             // ignore
         }
@@ -160,5 +172,45 @@ public class CompactMemInfoItem implements IItem {
      */
     public long getLostRam() {
         return mLostRam;
+    }
+
+    /** Sets the free RAM field */
+    public void setFreeRam(long freeRam) {
+        mFreeRam = freeRam;
+    }
+
+    /** Returns the free RAM field */
+    public long getFreeRam() {
+        return mFreeRam;
+    }
+
+    /** Sets the total ZRAM field */
+    public void setTotalZram(long totalZram) {
+        mTotalZram = totalZram;
+    }
+
+    /** Returns the total ZRAM field */
+    public long getTotalZram() {
+        return mTotalZram;
+    }
+
+    /** Sets the free swap ZRAM field */
+    public void setFreeSwapZram(long freeSwapZram) {
+        mFreeSwapZram = freeSwapZram;
+    }
+
+    /** Returns the free swap ZRAM field */
+    public long getFreeSwapZram() {
+        return mFreeSwapZram;
+    }
+
+    /** Sets the tuning level field */
+    public void setTuningLevel(long tuningLevel) {
+        mTuningLevel = tuningLevel;
+    }
+
+    /** Returns the tuning level field */
+    public long getTuningLevel() {
+        return mTuningLevel;
     }
 }

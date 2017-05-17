@@ -20,6 +20,7 @@ import com.android.loganalysis.item.DmesgActionInfoItem;
 import com.android.loganalysis.item.DmesgItem;
 import com.android.loganalysis.item.DmesgServiceInfoItem;
 import com.android.loganalysis.item.DmesgStageInfoItem;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.BufferedReader;
@@ -39,15 +40,22 @@ public class DmesgParser implements IParser {
     private static final String TIMESTAMP = "TIMESTAMP";
     private static final String STAGE = "STAGE";
     private static final String ACTION = "ACTION";
+    private static final String DURATION = "DURATION";
+    private static final String UEVENTD = "ueventd";
+
     // Matches: [ 14.822691] init:
     private static final String SERVICE_PREFIX = String.format("^\\[\\s+(?<%s>.*)\\] init:\\s+",
             TIMESTAMP);
+    // Matches: [    3.791635] ueventd:
+    private static final String UEVENTD_PREFIX = String.format("^\\[\\s+(?<%s>.*)\\] ueventd:\\s+",
+            TIMESTAMP);
+
     // Matches: starting service 'ueventd'...
     private static final String START_SERVICE_SUFFIX = String.format("starting service "
             + "\\'(?<%s>.*)\\'...", SERVICENAME);
     // Matches: Service 'ueventd' (pid 439) exited with status 0
     private static final String EXIT_SERVICE_SUFFIX = String.format("Service \\'(?<%s>.*)\\'\\s+"
-            + "\\((?<PID>.*)\\) exited with status 0", SERVICENAME);
+            + "\\((?<PID>.*)\\) exited with status 0.*", SERVICENAME);
 
     private static final Pattern START_SERVICE = Pattern.compile(
             String.format("%s%s", SERVICE_PREFIX, START_SERVICE_SUFFIX));
@@ -65,11 +73,17 @@ public class DmesgParser implements IParser {
 
     // Matches: init: processing action (early-init)
     private static final String START_PROCESSING_ACTION_PREFIX = String.format(
-            "processing action \\((?<%s>.*)\\)", ACTION);
+            "processing action \\((?<%s>.*)\\) from.*$", ACTION);
 
     // Matches: [   14.942872] init: processing action (early-init)
     private static final Pattern START_PROCESSING_ACTION = Pattern.compile(
             String.format("%s%s", SERVICE_PREFIX, START_PROCESSING_ACTION_PREFIX));
+
+    // Matches: [    3.791635] ueventd: Coldboot took 0.695055 seconds
+    private static final String STAGE_SUFFIX= String.format(
+            "(?<%s>.*)\\s+took\\s+(?<%s>.*)\\s+seconds$", STAGE, DURATION);
+    private static final Pattern UEVENTD_STAGE_INFO = Pattern.compile(
+            String.format("%s%s", UEVENTD_PREFIX, STAGE_SUFFIX));
 
 
     private DmesgItem mDmesgItem = new DmesgItem();
@@ -163,7 +177,8 @@ public class DmesgParser implements IParser {
 
     /**
      * Parse init stages log from each {@code line} of dmesg log and
-     * store the stage name and start time in a {@link DmesgStageInfoItem} object
+     * store the stage name, start time and duration if available in a
+     * {@link DmesgStageInfoItem} object
      *
      * @param individual line of the dmesg log
      * @return {@code true}, if the {@code line} indicates start of a boot stage,
@@ -179,6 +194,13 @@ public class DmesgParser implements IParser {
                     match.group(TIMESTAMP)) * 1000));
             mDmesgItem.addStageInfoItem(stageInfoItem);
             return true;
+        }
+        if((match = matches(UEVENTD_STAGE_INFO, line)) != null) {
+            DmesgStageInfoItem stageInfoItem = new DmesgStageInfoItem();
+            stageInfoItem.setStageName(String.format("%s_%s", UEVENTD, match.group(STAGE)));
+            stageInfoItem.setDuration((long) (Double.parseDouble(
+                    match.group(DURATION)) * 1000));
+            mDmesgItem.addStageInfoItem(stageInfoItem);
         }
         return false;
     }

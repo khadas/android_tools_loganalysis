@@ -39,6 +39,7 @@ public class DmesgParserTest extends TestCase {
     private static final String BOOT_ANIMATION = "bootanim";
     private static final String NETD = "netd";
     private static final String[] LINES = new String[] {
+            "[    3.786943] ueventd: Coldboot took 0.701291 seconds",
             "[   22.962730] init: starting service 'bootanim'...",
             "[   23.252321] init: starting service 'netd'...",
             "[   29.331069] ipa-wan ipa_wwan_ioctl:1428 dev(rmnet_data0) register to IPA",
@@ -46,15 +47,14 @@ public class DmesgParserTest extends TestCase {
             "[   35.642666] SELinux: initialized (dev fuse, type fuse), uses genfs_contexts",
             "[   39.855818] init: Service 'bootanim' (pid 588) exited with status 0",
             "[   41.665818] init: init first stage started!",
-            "[   42.425056] init: init second stage started!",
-            "[   44.942872] init: processing action (early-init)",
-            "[   47.233446] init: processing action (set_mmap_rnd_bits)",
-            "[   47.240083] init: processing action (set_kptr_restrict)",
-            "[   47.245778] init: processing action (keychord_init)",
-            "[   52.361049] init: processing action (persist.sys.usb.config=* boot)",
-            "[   52.361108] init: processing action (enable_property_trigger)",
-            "[   52.361313] init: processing action (security.perf_harden=1)",
-            "[   52.361495] init: processing action (ro.debuggable=1)",
+            "[   44.942872] init: processing action (early-init) from (/init.rc:13)",
+            "[   47.233446] init: processing action (set_mmap_rnd_bits) from (<Builtin Action>:0)",
+            "[   47.240083] init: processing action (set_kptr_restrict) from (<Builtin Action>:0)",
+            "[   47.245778] init: processing action (keychord_init) from (<Builtin Action>:0)",
+            "[   52.361049] init: processing action (persist.sys.usb.config=* boot) from (<Builtin Action>:0)",
+            "[   52.361108] init: processing action (enable_property_trigger) from (<Builtin Action>:0)",
+            "[   52.361313] init: processing action (security.perf_harden=1) from (/init.rc:677)",
+            "[   52.361495] init: processing action (ro.debuggable=1) from (/init.rc:700)",
             "[   59.331069] ipa-wan ipa_wwan_ioctl:1428 dev(rmnet_data0) register to IPA",
             "[   62.182592] ueventd: fixup /sys/devices/virtual/input/poll_delay 0 1004 660",
             "[   65.642666] SELinux: initialized (dev fuse, type fuse), uses genfs_contexts",
@@ -231,7 +231,8 @@ public class DmesgParserTest extends TestCase {
 
     private static List<DmesgStageInfoItem> getExpectedStageInfoItems() {
         return Arrays.asList(
-                new DmesgStageInfoItem("first", 41665L), new DmesgStageInfoItem("second", 42425L));
+                new DmesgStageInfoItem("ueventd_Coldboot", null, 701L),
+                new DmesgStageInfoItem("first", 41665L, null));
     }
 
     private static Map<String, DmesgServiceInfoItem> getExpectedServiceInfoItems() {

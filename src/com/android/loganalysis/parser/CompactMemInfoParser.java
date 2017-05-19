@@ -37,10 +37,12 @@ import java.util.regex.Pattern;
  *
  */
 public class CompactMemInfoParser implements IParser {
-    private static final Pattern PROC_PREFIX = Pattern.compile(
-            "proc,(\\w+),([a-zA-Z_0-9\\.]+),(\\d+),(\\d+),((\\S+),)?(.*)");
-    private static final Pattern LOST_RAM_PREFIX = Pattern.compile(
-            "lostram,(.+)");
+    private static final Pattern PROC_PATTERN =
+            Pattern.compile("proc,(\\w+),([a-zA-Z_0-9\\.]+),(\\d+),(\\d+),((\\S+),)?(.*)");
+    private static final Pattern LOST_RAM_PATTERN = Pattern.compile("lostram,(\\d+)");
+    private static final Pattern RAM_PATTERN = Pattern.compile("ram,(\\d+),(\\d+),(\\d+)");
+    private static final Pattern ZRAM_PATTERN = Pattern.compile("zram,(\\d+),(\\d+),(\\d+)");
+    private static final Pattern TUNING_PATTERN = Pattern.compile("tuning,(\\d+),(\\d+),(\\d+).*");
 
     /**
      * Parse compact meminfo log. Output a CompactMemInfoItem which contains
@@ -50,7 +52,7 @@ public class CompactMemInfoParser implements IParser {
     public CompactMemInfoItem parse(List<String> lines) {
         CompactMemInfoItem item = new CompactMemInfoItem();
         for (String line : lines) {
-            Matcher m = PROC_PREFIX.matcher(line);
+            Matcher m = PROC_PATTERN.matcher(line);
             if (m.matches()) {
                 String type = m.group(1);
                 String name = m.group(2);
@@ -69,12 +71,42 @@ public class CompactMemInfoParser implements IParser {
                 }
             }
 
-            m = LOST_RAM_PREFIX.matcher(line);
+            m = LOST_RAM_PATTERN.matcher(line);
             if (m.matches()) {
-                String name = "Lost RAM";
                 try {
                     long lostRam = Long.parseLong(m.group(1));
                     item.setLostRam(lostRam);
+                    continue;
+                } catch (NumberFormatException nfe) {
+                    // ignore exception
+                }
+            }
+
+            m = RAM_PATTERN.matcher(line);
+            if (m.matches()) {
+                try {
+                    item.setFreeRam(Long.parseLong(m.group(2)));
+                    continue;
+                } catch (NumberFormatException nfe) {
+                    // ignore exception
+                }
+            }
+
+            m = ZRAM_PATTERN.matcher(line);
+            if (m.matches()) {
+                try {
+                    item.setTotalZram(Long.parseLong(m.group(1)));
+                    item.setFreeSwapZram(Long.parseLong(m.group(3)));
+                    continue;
+                } catch (NumberFormatException nfe) {
+                    // ignore exception
+                }
+            }
+
+            m = TUNING_PATTERN.matcher(line);
+            if (m.matches()) {
+                try {
+                    item.setTuningLevel(Long.parseLong(m.group(3)));
                     continue;
                 } catch (NumberFormatException nfe) {
                     // ignore exception

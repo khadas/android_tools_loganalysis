@@ -74,14 +74,49 @@ public class CompactMemInfoParserTest extends TestCase {
         assertEquals(1005, item.getLostRam());
     }
 
+    public void testSingleRamLine() {
+        List<String> input = Arrays.asList("ram,2866484,1221694,1112777");
+        CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
+        assertEquals(1221694, item.getFreeRam());
+    }
+
+    public void testSingleZramLine() {
+        List<String> input = Arrays.asList("zram,5800,520908,491632");
+        CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
+        assertEquals(5800, item.getTotalZram());
+        assertEquals(491632, item.getFreeSwapZram());
+    }
+
+    public void testSingleTuningLine() {
+        // With specific configuration
+        List<String> input1 = Arrays.asList("tuning,192,512,322560,high-end-gfx");
+        CompactMemInfoItem item1 = new CompactMemInfoParser().parse(input1);
+        assertEquals(322560, item1.getTuningLevel());
+        // Without specific configuration
+        List<String> input2 = Arrays.asList("tuning,193,513,322561");
+        CompactMemInfoItem item2 = new CompactMemInfoParser().parse(input2);
+        assertEquals(322561, item2.getTuningLevel());
+    }
+
     public void testSomeMalformedLines() {
-        List<String> input = Arrays.asList(
-                "proc,cached,com.google.android.youtube,a,b,e",
-                "proc,cached,com.google.android.youtube,2964,c,e",
-                "proc,cached,com.google.android.youtube,2964,e",
-                "proc,cached,com.google.android.youtube,2964,19345,a,e",
-                "lostram,a,1000",
-                "lostram,1000,a");
+        List<String> input =
+                Arrays.asList(
+                        "proc,cached,com.google.android.youtube,a,b,e",
+                        "proc,cached,com.google.android.youtube,2964,c,e",
+                        "proc,cached,com.google.android.youtube,2964,e",
+                        "proc,cached,com.google.android.youtube,2964,19345,a,e",
+                        "lostram,a,1000",
+                        "lostram,1000,a",
+                        "ram,123,345",
+                        "ram,123,345,abc",
+                        "ram,123,345,456,678",
+                        "ram,123,345,456,abc",
+                        "zram,123,345",
+                        "zram,123,345,abc",
+                        "zram,123,345,456,678",
+                        "zram,123,345,456,abc",
+                        "tuning,123,345",
+                        "tuning,123,345,abc");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
 
@@ -89,13 +124,17 @@ public class CompactMemInfoParserTest extends TestCase {
     }
 
     public void testMultipleLines() {
-        List<String> input = Arrays.asList(
-                "proc,cached,com.google.android.youtube,2964,19345,123,e",
-                "proc,cached,com.google.android.apps.plus,2877,9604,N/A,e",
-                "proc,cached,com.google.android.apps.magazines,2009,20111,N/A,e",
-                "proc,cached,com.google.android.apps.walletnfcrel,10790,11164,100,e",
-                "proc,cached,com.google.android.incallui,3410,9491,N/A,e",
-                "lostram,1005");
+        List<String> input =
+                Arrays.asList(
+                        "proc,cached,com.google.android.youtube,2964,19345,123,e",
+                        "proc,cached,com.google.android.apps.plus,2877,9604,N/A,e",
+                        "proc,cached,com.google.android.apps.magazines,2009,20111,N/A,e",
+                        "proc,cached,com.google.android.apps.walletnfcrel,10790,11164,100,e",
+                        "proc,cached,com.google.android.incallui,3410,9491,N/A,e",
+                        "lostram,1005",
+                        "ram,2866484,1221694,1112777",
+                        "zram,5800,520908,491632",
+                        "tuning,193,513,322561");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
 
@@ -107,6 +146,10 @@ public class CompactMemInfoParserTest extends TestCase {
         assertEquals(false, item.hasActivities(2964));
 
         assertEquals(1005, item.getLostRam());
+        assertEquals(1221694, item.getFreeRam());
+        assertEquals(5800, item.getTotalZram());
+        assertEquals(491632, item.getFreeSwapZram());
+        assertEquals(322561, item.getTuningLevel());
     }
 
     public void testSkipNonProcLines() {
@@ -132,15 +175,19 @@ public class CompactMemInfoParserTest extends TestCase {
     }
 
     public void testJson() throws JSONException {
-        List<String> input = Arrays.asList(
-                "oom,cached,141357",
-                "proc,cached,com.google.android.youtube,2964,19345,N/A,e",
-                "proc,cached,com.google.android.apps.plus,2877,9604,50,e",
-                "proc,cached,com.google.android.apps.magazines,2009,20111,100,e",
-                "proc,cached,com.google.android.apps.walletnfcrel,10790,11164,0,e",
-                "proc,cached,com.google.android.incallui,3410,9491,500,e",
-                "lostram,1005",
-                "cat,Native,63169");
+        List<String> input =
+                Arrays.asList(
+                        "oom,cached,141357",
+                        "proc,cached,com.google.android.youtube,2964,19345,N/A,e",
+                        "proc,cached,com.google.android.apps.plus,2877,9604,50,e",
+                        "proc,cached,com.google.android.apps.magazines,2009,20111,100,e",
+                        "proc,cached,com.google.android.apps.walletnfcrel,10790,11164,0,e",
+                        "proc,cached,com.google.android.incallui,3410,9491,500,e",
+                        "lostram,1005",
+                        "ram,2866484,1221694,1112777",
+                        "zram,5800,520908,491632",
+                        "tuning,193,513,322561",
+                        "cat,Native,63169");
 
         CompactMemInfoItem item = new CompactMemInfoParser().parse(input);
         JSONObject json = item.toJson();
@@ -150,5 +197,9 @@ public class CompactMemInfoParserTest extends TestCase {
         assertEquals(5, processes.length());
 
         assertEquals(1005, (long)json.get("lostRam"));
+        assertEquals(1221694, (long) json.get("freeRam"));
+        assertEquals(5800, (long) json.get("totalZram"));
+        assertEquals(491632, (long) json.get("freeSwapZram"));
+        assertEquals(322561, (long) json.get("tuningLevel"));
     }
 }

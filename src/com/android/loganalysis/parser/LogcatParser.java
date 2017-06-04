@@ -54,12 +54,18 @@ public class LogcatParser implements IParser {
 
     /**
      * Match a single line of `logcat -v threadtime`, such as:
-     * 05-26 11:02:36.886  5689  5689 D AndroidRuntime: CheckJNI is OFF
+     *
+     * <pre>05-26 11:02:36.886 5689 5689 D AndroidRuntime: CheckJNI is OFF.</pre>
      */
-    private static final Pattern THREADTIME_LINE = Pattern.compile(
-            "^(\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+" +  /* timestamp [1] */
-                "(\\d+)\\s+(\\d+)\\s+([A-Z])\\s+" +  /* pid/tid and log level [2-4] */
-                "(.+?)\\s*: (.*)$" /* tag and message [5-6]*/);
+    private static final Pattern THREADTIME_LINE =
+            // UID was added to logcat. It could either be a number or a string.
+            Pattern.compile(
+                    // timestamp[1]
+                    "^(\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{3})"
+                            // pid/tid and log level [2-4]
+                            + "(?:\\s+[0-9A-Za-z]+)?\\s+(\\d+)\\s+(\\d+)\\s+([A-Z])\\s+"
+                            // tag and message [5-6]
+                            + "(.+?)\\s*: (.*)$");
 
     /**
      * Match a single line of `logcat -v time`, such as:

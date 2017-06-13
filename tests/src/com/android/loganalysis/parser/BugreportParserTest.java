@@ -491,6 +491,79 @@ public class BugreportParserTest extends TestCase {
     }
 
     /**
+     * Add a test that ensures that the "new" style of stack dumping works. Traces aren't written to
+     * a global trace file. Instead, each ANR event is written to a separate trace file (note the
+     * "/data/anr/anr_4376042170248254515" instead of "/data/anr/traces.txt").
+     */
+    public void testAnrTraces_not_global_traceFile() {
+        List<String> lines =
+                Arrays.asList(
+                        "========================================================",
+                        "== dumpstate: 2017-06-12 16:46:29",
+                        "========================================================",
+                        "------ SYSTEM LOG (logcat -v threadtime -v printable -v uid -d *:v) ------",
+                        "--------- beginning of main  ",
+                        "02-18 04:26:31.829  logd   468   468 W auditd  : type=2000 audit(0.0:1): initialized",
+                        "02-18 04:26:33.783  logd   468   468 I auditd  : type=1403 audit(0.0:2): policy loaded auid=4294967295 ses=4294967295",
+                        "02-18 04:26:33.783  logd   468   468 W auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager: ANR in com.example.android.helloactivity (com.example.android.helloactivity/.HelloActivity)",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager: PID: 7176",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager: Reason: Input dispatching timed out (Waiting because no window has focus but there is a focused application that may eventually add a window when it finishes starting up.)",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager: Load: 6.85 / 7.07 / 5.31",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager: CPU usage from 235647ms to 0ms ago (2017-06-12 16:41:49.415 to 2017-06-12 16:45:45.062):",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager:   7.7% 1848/com.ustwo.lwp: 4% user + 3.7% kernel / faults: 157 minor",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager:   7.7% 2536/com.google.android.googlequicksearchbox:search: 5.6% user + 2.1% kernel / faults: 195 minor",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager:   7.2% 1050/system_server: 4.5% user + 2.6% kernel / faults: 27117 minor ",
+                        "06-12 16:45:47.426  1000  1050  1124 E ActivityManager:   5.3% 489/surfaceflinger: 2.9% user + 2.3% kernel / faults: 15 minor ",
+                        "",
+                        "------ VM TRACES AT LAST ANR (/data/anr/anr_4376042170248254515: 2017-06-12 16:45:47) ------",
+                        "",
+                        "----- pid 7176 at 2017-06-12 16:45:45 -----",
+                        "Cmd line: com.example.android.helloactivity",
+                        "",
+                        "DALVIK THREADS:",
+                        "(mutexes: tll=0 tsl=0 tscl=0 ghl=0)",
+                        "",
+                        "\"main\" daemon prio=5 tid=5 Waiting",
+                        "  | group=\"system\" sCount=1 dsCount=0 flags=1 obj=0x140805e8 self=0x7caf4bf400",
+                        "  | sysTid=7184 nice=4 cgrp=default sched=0/0 handle=0x7c9b4e44f0",
+                        "  | state=S schedstat=( 507031 579062 19 ) utm=0 stm=0 core=3 HZ=100",
+                        "  | stack=0x7c9b3e2000-0x7c9b3e4000 stackSize=1037KB",
+                        "  | held mutexes=",
+                        "  at java.lang.Object.wait(Native method)",
+                        "  - waiting on <0x0281f7b7> (a java.lang.Class<java.lang.ref.ReferenceQueue>)",
+                        "  at java.lang.Daemons$ReferenceQueueDaemon.runInternal(Daemons.java:178)",
+                        "  - locked <0x0281f7b7> (a java.lang.Class<java.lang.ref.ReferenceQueue>)",
+                        "  at java.lang.Daemons$Daemon.run(Daemons.java:103)",
+                        "  at java.lang.Thread.run(Thread.java:764)",
+                        "",
+                        "----- end 7176 -----");
+
+        // NOTE: The parser only extracts the main thread from the traces.
+        List<String> expectedStack =
+                Arrays.asList(
+                        "\"main\" daemon prio=5 tid=5 Waiting",
+                        "  | group=\"system\" sCount=1 dsCount=0 flags=1 obj=0x140805e8 self=0x7caf4bf400",
+                        "  | sysTid=7184 nice=4 cgrp=default sched=0/0 handle=0x7c9b4e44f0",
+                        "  | state=S schedstat=( 507031 579062 19 ) utm=0 stm=0 core=3 HZ=100",
+                        "  | stack=0x7c9b3e2000-0x7c9b3e4000 stackSize=1037KB",
+                        "  | held mutexes=",
+                        "  at java.lang.Object.wait(Native method)",
+                        "  - waiting on <0x0281f7b7> (a java.lang.Class<java.lang.ref.ReferenceQueue>)",
+                        "  at java.lang.Daemons$ReferenceQueueDaemon.runInternal(Daemons.java:178)",
+                        "  - locked <0x0281f7b7> (a java.lang.Class<java.lang.ref.ReferenceQueue>)",
+                        "  at java.lang.Daemons$Daemon.run(Daemons.java:103)",
+                        "  at java.lang.Thread.run(Thread.java:764)");
+
+        BugreportItem bugreport = new BugreportParser().parse(lines);
+        assertNotNull(bugreport.getSystemLog());
+        assertEquals(1, bugreport.getSystemLog().getAnrs().size());
+        assertEquals(
+                ArrayUtil.join("\n", expectedStack),
+                bugreport.getSystemLog().getAnrs().get(0).getTrace());
+    }
+
+    /**
      * Test that missing sections in bugreport are set to {@code null}, not empty {@link IItem}s.
      */
     public void testNoSections() {

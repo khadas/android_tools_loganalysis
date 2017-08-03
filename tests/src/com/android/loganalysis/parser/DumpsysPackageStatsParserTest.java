@@ -15,8 +15,8 @@
  */
 package com.android.loganalysis.parser;
 
-import com.android.loganalysis.item.DumpsysPackageStatsItem;
 import com.android.loganalysis.item.AppVersionItem;
+import com.android.loganalysis.item.DumpsysPackageStatsItem;
 
 import junit.framework.TestCase;
 

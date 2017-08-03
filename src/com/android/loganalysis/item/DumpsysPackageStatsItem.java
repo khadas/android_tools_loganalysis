@@ -19,6 +19,8 @@ package com.android.loganalysis.item;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Map;
+
 /** An {@link IItem} used to store apps and their version codes and names. */
 public class DumpsysPackageStatsItem extends GenericMapItem<AppVersionItem> {
     private static final long serialVersionUID = 1L;
@@ -31,7 +33,11 @@ public class DumpsysPackageStatsItem extends GenericMapItem<AppVersionItem> {
     public JSONObject toJson() {
         JSONObject object = new JSONObject();
         try {
-            object.put(APP_VERSIONS, super.toJson());
+            JSONObject appVersions = new JSONObject();
+            for (Map.Entry<String, AppVersionItem> entry : entrySet()) {
+                appVersions.put(entry.getKey(), entry.getValue().toJson());
+            }
+            object.put(APP_VERSIONS, appVersions);
         } catch (JSONException e) {
             // Ignore
         }

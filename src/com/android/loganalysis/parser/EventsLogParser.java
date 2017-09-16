@@ -41,7 +41,7 @@ public class EventsLogParser implements IParser {
     // com.google.android.gm.welcome.WelcomeTourActivity,905,0]
     private static final Pattern TRANSITION_STARTING_DELAY = Pattern.compile(
             String.format("%s%s", EVENTS_PREFIX, "I sysui_multi_action: \\[319,(.*),321,(.*)"
-                    + ",322,(.*),806,(.*),871,(.*),905.*\\]$"));
+                    + ",322,(.*),806,(.*),871,(.*),904.*\\]$"));
 
     // 01-01 01:38:44.863  1037  1111 I sysui_multi_action:
     // [319,64,322,99,325,5951,757,761,758,9,759,4,806,com.google.android.gm,871,

@@ -45,6 +45,7 @@ import com.android.loganalysis.parser.DumpsysBatteryStatsParserTest;
 import com.android.loganalysis.parser.DumpsysPackageStatsParserTest;
 import com.android.loganalysis.parser.DumpsysParserTest;
 import com.android.loganalysis.parser.DumpsysProcStatsParserTest;
+import com.android.loganalysis.parser.DumpsysProcessMeminfoParserTest;
 import com.android.loganalysis.parser.DumpsysWifiStatsParserTest;
 import com.android.loganalysis.parser.DvmLockSampleParserTest;
 import com.android.loganalysis.parser.EventsLogParserTest;
@@ -130,6 +131,7 @@ import org.junit.runners.Suite.SuiteClasses;
     DumpsysBatteryStatsParserTest.class,
     DumpsysPackageStatsParserTest.class,
     DumpsysParserTest.class,
+    DumpsysProcessMeminfoParserTest.class,
     DumpsysProcStatsParserTest.class,
     DumpsysWifiStatsParserTest.class,
     DvmLockSampleParserTest.class,

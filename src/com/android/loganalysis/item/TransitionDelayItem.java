@@ -32,9 +32,17 @@ public class TransitionDelayItem extends GenericItem {
     public static final String TRANSITION_DELAY = "TRANSITION_DELAY";
     /** Constant for JSON output */
     public static final String DATE_TIME = "DATE_TIME";
+    /** Constant for JSON output */
+    public static final String WINDOW_DRAWN_DELAY = "WINDOW_DRAWN_DELAY";
 
-    private static final Set<String> ATTRIBUTES = new HashSet<String>(Arrays.asList(
-            COMPONENT_NAME, START_WINDOW_DELAY, TRANSITION_DELAY, DATE_TIME));
+    private static final Set<String> ATTRIBUTES =
+            new HashSet<String>(
+                    Arrays.asList(
+                            COMPONENT_NAME,
+                            START_WINDOW_DELAY,
+                            TRANSITION_DELAY,
+                            DATE_TIME,
+                            WINDOW_DRAWN_DELAY));
 
     /**
      * The constructor for {@link TransitionDelayItem}.
@@ -78,5 +86,15 @@ public class TransitionDelayItem extends GenericItem {
 
     public void setDateTime(String dateTime) {
         setAttribute(DATE_TIME, dateTime);
+    }
+
+    public Long getWindowDrawnDelay() {
+        return getAttribute(WINDOW_DRAWN_DELAY) != null
+                ? (Long) getAttribute(WINDOW_DRAWN_DELAY)
+                : null;
+    }
+
+    public void setWindowDrawnDelay(long windowDrawnDelay) {
+        setAttribute(WINDOW_DRAWN_DELAY, windowDrawnDelay);
     }
 }

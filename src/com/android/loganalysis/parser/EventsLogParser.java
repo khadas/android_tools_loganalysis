@@ -54,6 +54,7 @@ public class EventsLogParser implements IParser {
     private static final String TRANSITION_DELAY_KEY = "319";
     private static final String STARTING_WINDOW_DELAY_KEY = "321";
     private static final String COLD_LAUNCH_KEY = "945";
+    private static final String WINDOWS_DRAWN_DELAY_KEY = "322";
 
     @Override
     public IItem parse(List<String> lines) {
@@ -80,13 +81,16 @@ public class EventsLogParser implements IParser {
                     TransitionDelayItem delayItem = new TransitionDelayItem();
                     if (null != transitionInfoMap.get(PACKAGE_KEY)
                             && null != transitionInfoMap.get(ACTIVITY_KEY)
-                            && null != transitionInfoMap.get(TRANSITION_DELAY_KEY)) {
+                            && null != transitionInfoMap.get(TRANSITION_DELAY_KEY)
+                            && null != transitionInfoMap.get(WINDOWS_DRAWN_DELAY_KEY)) {
                         delayItem.setComponentName(transitionInfoMap.get(PACKAGE_KEY) + "/"
                                 + transitionInfoMap.get(ACTIVITY_KEY));
                         delayItem.setTransitionDelay(Long.parseLong(transitionInfoMap
                                 .get(TRANSITION_DELAY_KEY)));
                         delayItem.setDateTime(String.format("%s %s", match.group(DATE),
                                 match.group(TIME)));
+                        delayItem.setWindowDrawnDelay(
+                                Long.parseLong(transitionInfoMap.get(WINDOWS_DRAWN_DELAY_KEY)));
                     }
                     if (transitionInfoMap.containsKey(COLD_LAUNCH_KEY)) {
                         if (null != transitionInfoMap.get(STARTING_WINDOW_DELAY_KEY)) {

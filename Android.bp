@@ -18,9 +18,9 @@ java_library_host {
 
   srcs: [ "src/**/*.java" ],
 
-  static_libs: [
-    "guava-18.0-prebuilt",
-    "json-prebuilt",
+  libs: [
+    "guava",
     "junit",
+    "json-prebuilt",
   ],
 }

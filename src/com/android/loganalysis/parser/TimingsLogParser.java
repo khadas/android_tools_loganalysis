@@ -16,14 +16,21 @@
 
 package com.android.loganalysis.parser;
 
+
+import com.android.loganalysis.item.GenericTimingItem;
 import com.android.loganalysis.item.IItem;
 import com.android.loganalysis.item.SystemServicesTimingItem;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +40,6 @@ import java.util.regex.Pattern;
  * logcat. It will parse duration metrics for some system services like System Server, Zygote,
  * System UI, e.t.c.
  *
- * <p>TODO(b/133166326): Add support for parsing thread time info from log lines, and also support
- * dynamically adding new log line patterns.
  */
 public class TimingsLogParser implements IParser {
 
@@ -42,6 +47,16 @@ public class TimingsLogParser implements IParser {
             "^\\d*-\\d*\\s*\\d*:\\d*:\\d*.\\d*\\s*"
                     + "\\d*\\s*\\d*\\s*D\\s*(?<componentname>.*):\\s*(?<subname>\\S*)\\s*";
     private static final String SYSTEM_SERVICES_TIME_SUFFIX = ":\\s*(?<time>.*)ms\\s*$";
+
+    /** Used to parse time info from logcat lines */
+    private static final DateFormat DEFAULT_TIME_FORMAT =
+            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+    /**
+     * Year is not important in timing info. Always use Unix time starting year for timestamp
+     * conversion with simplicity
+     */
+    private static final String DEFAULT_YEAR = "1970";
 
     /**
      * Match the line with system services duration info like:
@@ -65,10 +80,113 @@ public class TimingsLogParser implements IParser {
                             "%sstart time%s",
                             SYSTEM_SERVICES_TIME_PREFIX, SYSTEM_SERVICES_TIME_SUFFIX));
 
+    private List<DurationPattern> durationPatterns = new ArrayList<>();
+
+    private static class DurationPattern {
+        String mName;
+        Pattern mStartTimePattern;
+        Pattern mEndTimePattern;
+
+        DurationPattern(String name, Pattern startTimePattern, Pattern endTimePattern) {
+            mName = name;
+            mStartTimePattern = startTimePattern;
+            mEndTimePattern = endTimePattern;
+        }
+    }
+
     @Override
     public IItem parse(List<String> lines) {
         throw new UnsupportedOperationException(
                 "Method has not been implemented in lieu of others");
+    }
+
+    /**
+     * Add a pair of patterns matching the start and end signals in logcat for a duration metric
+     *
+     * @param name the name of the duration metric, it should be unique
+     * @param startTimePattern the pattern matches the logcat line indicating start of duration
+     * @param endTimePattern the pattern matches the logcat line indicating end of duration
+     */
+    public void addDurationPatternPair(
+            String name, Pattern startTimePattern, Pattern endTimePattern) {
+        DurationPattern durationPattern =
+                new DurationPattern(name, startTimePattern, endTimePattern);
+        durationPatterns.add(durationPattern);
+    }
+
+    /** Cleanup added duration patterns */
+    public void clearDurationPatterns() {
+        durationPatterns.clear();
+    }
+
+    /**
+     * Parse logcat lines with the added duration patterns and generate a list of {@link
+     * GenericTimingItem} representing the duration items. Note, a duration pattern could have zero
+     * or multiple matches
+     *
+     * @param input logcat lines
+     * @return list of {@link GenericTimingItem}
+     * @throws IOException
+     */
+    public List<GenericTimingItem> parseGenericTimingItems(BufferedReader input)
+            throws IOException {
+        List<GenericTimingItem> items = new ArrayList<>();
+        String line;
+        //Timing items that are partially matched after captured start time
+        Map<String, Double> pendingItems = new HashMap<>();
+        while ((line = input.readLine()) != null) {
+            items.addAll(parseGenericTimingItem(line, pendingItems));
+        }
+        return items;
+    }
+
+    /**
+     * Parse a particular logcat line to get duration items. One line could have be matched by
+     * multiple patterns
+     *
+     * @param line logcat line
+     * @param pendingItems timing items that are half-matched with only start time.
+     * @return list of {@link GenericTimingItem}
+     */
+    private List<GenericTimingItem> parseGenericTimingItem(
+            String line, Map<String, Double> pendingItems) {
+        List<GenericTimingItem> items = new ArrayList<>();
+        for (DurationPattern durationPattern : durationPatterns) {
+            Matcher matcher = durationPattern.mStartTimePattern.matcher(line);
+            if (matcher.find()) {
+                double startTimeMillis = parseTime(line);
+                pendingItems.put(durationPattern.mName, startTimeMillis);
+                continue;
+            }
+            matcher = durationPattern.mEndTimePattern.matcher(line);
+            if (matcher.find()) {
+                double endTimeMillis = parseTime(line);
+                Double startTimeMillis = pendingItems.get(durationPattern.mName);
+                if (startTimeMillis != null) {
+                    GenericTimingItem newItem = new GenericTimingItem();
+                    newItem.setName(durationPattern.mName);
+                    newItem.setStartAndEnd(startTimeMillis, endTimeMillis);
+                    items.add(newItem);
+                    pendingItems.remove(durationPattern.mName);
+                }
+            }
+        }
+        return items;
+    }
+
+    /**
+     * Get timestamp of current logcat line based on DEFAULT_YEAR
+     *
+     * @param line logcat line
+     * @return timestamp
+     */
+    private double parseTime(String line) {
+        String timeStr = String.format("%s-%s", DEFAULT_YEAR, line);
+        try {
+            return DEFAULT_TIME_FORMAT.parse(timeStr).getTime();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

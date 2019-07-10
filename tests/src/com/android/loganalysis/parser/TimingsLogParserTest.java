@@ -16,6 +16,7 @@
 
 package com.android.loganalysis.parser;
 
+import com.android.loganalysis.item.GenericTimingItem;
 import com.android.loganalysis.item.SystemServicesTimingItem;
 
 import junit.framework.TestCase;
@@ -26,12 +27,248 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /** Unit Test for {@link TimingsLogParser} */
 public class TimingsLogParserTest extends TestCase {
 
+    private TimingsLogParser mParser;
+
+    public TimingsLogParserTest() {
+        mParser = new TimingsLogParser();
+    }
+
+    public void testParseGenericTiming_noPattern() throws IOException {
+        // Test when input is empty
+        String log = "";
+        List<GenericTimingItem> items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(0, items.size());
+        // Test when input is not empty
+        log =
+                String.join(
+                        "\n",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: GIC system register CPU interface",
+                        "01-17 01:22:39.513     0     0 I CPU features: kernel page table isolation forced ON by command line option",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: 32-bit EL0 Support",
+                        "01-17 01:22:59.823     0     0 I init    : Service 'bootanim' (pid 1030) exited with status 0",
+                        "01-17 01:22:59.966     0     0 I init    : processing action (sys.boot_completed=1) from (/init.rc:796)");
+        items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(0, items.size());
+    }
+
+    public void testParseGenericTiming_multiplePattern_oneOccurrenceEach() throws IOException {
+        String log =
+                String.join(
+                        "\n",
+                        "01-17 01:22:39.503     0     0 I         : Linux version 4.4.177 (Kernel Boot Started)",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: GIC system register CPU interface",
+                        "01-17 01:22:39.513     0     0 I CPU features: kernel page table isolation forced ON by command line option",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: 32-bit EL0 Support",
+                        "01-17 01:22:43.634     0     0 I init    : starting service 'zygote'...",
+                        "01-17 01:22:48.634     0     0 I init    : 'zygote' started",
+                        "01-17 01:22:53.392     0     0 I init    : starting service 'fake service'",
+                        "01-17 01:22:59.823     0     0 I init    : Service 'bootanim' (pid 1030) exited with status 0",
+                        "01-17 01:22:60.334     0     0 I init    : 'fake service' started",
+                        "01-17 01:22:61.362   938  1111 I ActivityManager: my app started",
+                        "01-17 01:22:61.977   938  1111 I ActivityManager: my app displayed");
+
+        mParser.addDurationPatternPair(
+                "BootToAnimEnd",
+                Pattern.compile("Linux version"),
+                Pattern.compile("Service 'bootanim'"));
+        mParser.addDurationPatternPair(
+                "ZygoteStartTime",
+                Pattern.compile("starting service 'zygote'"),
+                Pattern.compile("'zygote' started"));
+        mParser.addDurationPatternPair(
+                "FakeServiceStartTime",
+                Pattern.compile("starting service 'fake service'"),
+                Pattern.compile("'fake service' started"));
+        mParser.addDurationPatternPair(
+                "BootToAppStart",
+                Pattern.compile("Linux version"),
+                Pattern.compile("my app displayed"));
+        mParser.addDurationPatternPair(
+                "AppStartTime",
+                Pattern.compile("my app started"),
+                Pattern.compile("my app displayed"));
+        mParser.addDurationPatternPair(
+                "ZygoteToApp",
+                Pattern.compile("'zygote' started"),
+                Pattern.compile("my app started"));
+        List<GenericTimingItem> items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(6, items.size());
+        // 1st item
+        assertEquals("ZygoteStartTime", items.get(0).getName());
+        assertEquals(5000.0, items.get(0).getDuration());
+        // 2nd item
+        assertEquals("BootToAnimEnd", items.get(1).getName());
+        assertEquals(20320.0, items.get(1).getDuration());
+        // 3rd item
+        assertEquals("FakeServiceStartTime", items.get(2).getName());
+        assertEquals(6942.0, items.get(2).getDuration());
+        // 4th item
+        assertEquals("ZygoteToApp", items.get(3).getName());
+        assertEquals(12728.0, items.get(3).getDuration());
+        // 5th item
+        assertEquals("BootToAppStart", items.get(4).getName());
+        assertEquals(22474.0, items.get(4).getDuration());
+        // 6th item
+        assertEquals("AppStartTime", items.get(5).getName());
+        assertEquals(615.0, items.get(5).getDuration());
+    }
+
+    public void testParseGenericTiming_multiplePattern_someNotMatched() throws IOException {
+        String log =
+                String.join(
+                        "\n",
+                        "01-17 01:22:39.503     0     0 I         : Linux version 4.4.177 (Kernel Boot Started)",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: GIC system register CPU interface",
+                        "01-17 01:22:39.513     0     0 I CPU features: kernel page table isolation forced ON by command line option",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: 32-bit EL0 Support",
+                        "01-17 01:22:43.634     0     0 I init    : starting service 'zygote'...",
+                        "01-17 01:22:48.634     0     0 I init    : 'zygote' started",
+                        "01-17 01:22:53.392     0     0 I init    : starting service 'fake service'",
+                        "01-17 01:22:59.823     0     0 I init    : Service 'bootanim' (pid 1030) exited with status 0",
+                        "01-17 01:22:60.334     0     0 I init    : 'fake service' started",
+                        "01-17 01:22:61.362   938  1111 I ActivityManager: my app started",
+                        "01-17 01:22:61.977   938  1111 I ActivityManager: my app displayed");
+
+        mParser.addDurationPatternPair(
+                "BootToAnimEnd",
+                Pattern.compile("Linux version"),
+                Pattern.compile("Service 'bootanim'"));
+        mParser.addDurationPatternPair(
+                "ZygoteStartTime",
+                Pattern.compile("starting service 'zygote'"),
+                Pattern.compile("End line no there"));
+        mParser.addDurationPatternPair(
+                "FakeServiceStartTime",
+                Pattern.compile("Start line not there"),
+                Pattern.compile("'fake service' started"));
+        mParser.addDurationPatternPair(
+                "AppStartTime",
+                Pattern.compile("Start line not there"),
+                Pattern.compile("End line not there"));
+
+        List<GenericTimingItem> items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(1, items.size());
+        assertEquals("BootToAnimEnd", items.get(0).getName());
+    }
+
+    public void testParseGenericTiming_clearExistingPatterns() throws IOException {
+        String log =
+                String.join(
+                        "\n",
+                        "01-17 01:22:39.503     0     0 I         : Linux version 4.4.177 (Kernel Boot Started)",
+                        "01-17 01:22:53.392     0     0 I init    : starting service 'fake service'",
+                        "01-17 01:22:59.823     0     0 I init    : Service 'bootanim' (pid 1030) exited with status 0",
+                        "01-17 01:22:60.334     0     0 I init    : 'fake service' started",
+                        "01-17 01:22:61.362   938  1111 I ActivityManager: my app started",
+                        "01-17 01:22:61.977   938  1111 I ActivityManager: my app displayed");
+        mParser.addDurationPatternPair(
+                "BootToAnimEnd",
+                Pattern.compile("Linux version"),
+                Pattern.compile("Service 'bootanim'"));
+        List<GenericTimingItem> items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(1, items.size());
+
+        mParser.clearDurationPatterns();
+        items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(0, items.size());
+    }
+
+    public void testParseGenericTiming_multiplePattern_multipleOccurrence() throws IOException {
+        String log =
+                String.join(
+                        "\n",
+                        "01-17 01:22:39.503     0     0 I         : Linux version 4.4.177 (Kernel Boot Started)",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: GIC system register CPU interface",
+                        "01-17 01:22:39.513     0     0 I CPU features: kernel page table isolation forced ON by command line option",
+                        "01-17 01:22:39.513     0     0 I CPU features: detected feature: 32-bit EL0 Support",
+                        "01-17 01:22:43.634     0     0 I init    : starting service 'zygote'...",
+                        "01-17 01:22:48.634     0     0 I init    : 'zygote' started",
+                        "01-17 01:22:53.392     0     0 I init    : starting service 'fake service'",
+                        "01-17 01:22:59.823     0     0 I init    : 'bootanim' not reported",
+                        "01-17 01:22:60.334     0     0 I init    : 'fake service' started",
+                        "01-17 01:32:39.503     0     0 I         : Linux version 4.4.177 (Kernel Boot Started)",
+                        "01-17 01:32:39.513     0     0 I CPU features: detected feature: GIC system register CPU interface",
+                        "01-17 01:32:39.513     0     0 I CPU features: kernel page table isolation forced ON by command line option",
+                        "01-17 01:32:39.513     0     0 I CPU features: detected feature: 32-bit EL0 Support",
+                        "01-17 01:32:43.634     0     0 I init    : starting service 'zygote'...",
+                        "01-17 01:32:48.634     0     0 I init    : 'zygote' started",
+                        "01-17 01:32:53.392     0     0 I init    : starting service 'a different service'",
+                        "01-17 01:32:59.823     0     0 I init    : Service 'bootanim' (pid 1030) exited with status 0",
+                        "01-17 01:32:60.334     0     0 I init    : 'fake service' started",
+                        "01-17 01:32:61.362   938  1111 I ActivityManager: my app started",
+                        "01-17 01:32:61.977   938  1111 I ActivityManager: my app displayed");
+
+        mParser.addDurationPatternPair(
+                "BootToAnimEnd",
+                Pattern.compile("Linux version"),
+                Pattern.compile("Service 'bootanim'"));
+        mParser.addDurationPatternPair(
+                "ZygoteStartTime",
+                Pattern.compile("starting service 'zygote'"),
+                Pattern.compile("'zygote' started"));
+        mParser.addDurationPatternPair(
+                "FakeServiceStartTime",
+                Pattern.compile("starting service 'fake service'"),
+                Pattern.compile("'fake service' started"));
+        mParser.addDurationPatternPair(
+                "AppStartTime",
+                Pattern.compile("my app started"),
+                Pattern.compile("my app displayed"));
+        List<GenericTimingItem> items = mParser.parseGenericTimingItems(createBufferedReader(log));
+        assertNotNull(items);
+        assertEquals(5, items.size());
+        // 1st item
+        assertEquals("ZygoteStartTime", items.get(0).getName());
+        assertEquals(5000.0, items.get(0).getDuration());
+        // 2nd item
+        assertEquals("FakeServiceStartTime", items.get(1).getName());
+        assertEquals(6942.0, items.get(1).getDuration());
+        // 3rd item
+        assertEquals("ZygoteStartTime", items.get(2).getName());
+        assertEquals(5000.0, items.get(2).getDuration());
+        // 4th item
+        assertEquals("BootToAnimEnd", items.get(3).getName());
+        assertEquals(20320.0, items.get(3).getDuration());
+        // 5th item
+        assertEquals("AppStartTime", items.get(4).getName());
+        assertEquals(615.0, items.get(4).getDuration());
+    }
+
+    public void testParseGenericTiming_wrongTimeFormat() throws IOException {
+        String log =
+                String.join(
+                        "\n",
+                        "1234252.234     0     0 I         : Linux version 4.4.177 (Kernel Boot Started)",
+                        "1234259.342     0     0 I CPU features: detected feature: GIC system register CPU interface");
+        mParser.addDurationPatternPair(
+                "BootToAnimEnd",
+                Pattern.compile("Linux version"),
+                Pattern.compile("Service 'bootanim'"));
+        try {
+            List<GenericTimingItem> items =
+                    mParser.parseGenericTimingItems(createBufferedReader(log));
+        } catch (RuntimeException e) {
+            assertTrue(
+                    "Test should report ParseException",
+                    e.getCause().toString().startsWith("java.text.ParseException"));
+            return;
+        }
+        fail("Test should throw ParseException");
+    }
+
     /** Test that system services duration can be parsed as expected */
-    public void testParseSystemServicesTimingInfo_system_services_duration() throws IOException {
+    public void testParseSystemServicesTiming_system_services_duration() throws IOException {
         String log =
                 String.join(
                         "\n",
@@ -51,7 +288,7 @@ public class TimingsLogParserTest extends TestCase {
                         "06-06 19:23:56.410   981   981 D SystemServerTiming: StartWatchdog took to complete: 38ms"); //Parser should parse the same metric at a different time
 
         List<SystemServicesTimingItem> items =
-                new TimingsLogParser().parseSystemServicesTimingItems(createBufferedReader(log));
+                mParser.parseSystemServicesTimingItems(createBufferedReader(log));
         assertNotNull(items);
         assertEquals(6, items.size());
         assertEquals("SystemServerTiming", items.get(0).getComponent());
@@ -74,7 +311,7 @@ public class TimingsLogParserTest extends TestCase {
     }
 
     /** Test that system services start time can be parsed as expected */
-    public void testParse_system_services_start_time() throws IOException {
+    public void testParseSystemServicesTiming_system_services_start_time() throws IOException {
         String log =
                 String.join(
                         "\n",
@@ -91,7 +328,7 @@ public class TimingsLogParserTest extends TestCase {
                         "06-06 19:23:59.299   179   179 D FakeService  : Validstart time: 34839ms");
 
         List<SystemServicesTimingItem> items =
-                new TimingsLogParser().parseSystemServicesTimingItems(createBufferedReader(log));
+                mParser.parseSystemServicesTimingItems(createBufferedReader(log));
         assertNotNull(items);
         assertEquals(4, items.size());
         assertEquals("BootAnimation", items.get(0).getComponent());

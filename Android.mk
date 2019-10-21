@@ -14,5 +14,16 @@
 
 LOCAL_PATH := $(call my-dir)
 
+# makefile rules to copy jars to HOST_OUT/tradefed
+# so tradefed.sh can automatically add to classpath
+
+DEST_JAR := $(HOST_OUT)/tradefed/loganalysis.jar
+BUILT_JAR := $(call intermediates-dir-for,JAVA_LIBRARIES,loganalysis,HOST)/javalib.jar
+$(DEST_JAR): $(BUILT_JAR)
+	$(copy-file-to-new-target)
+
+# this dependency ensure the above rule will be executed if module is built
+$(HOST_OUT_JAVA_LIBRARIES)/loganalysis.jar : $(DEST_JAR)
+
 # Build all sub-directories
 include $(call all-makefiles-under,$(LOCAL_PATH))

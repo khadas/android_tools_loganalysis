@@ -37,7 +37,6 @@ import com.android.loganalysis.parser.BatteryDischargeStatsInfoParserTest;
 import com.android.loganalysis.parser.BatteryStatsDetailedInfoParserTest;
 import com.android.loganalysis.parser.BatteryStatsSummaryInfoParserTest;
 import com.android.loganalysis.parser.BatteryUsageParserTest;
-import com.android.loganalysis.parser.TimingsLogParserTest;
 import com.android.loganalysis.parser.BugreportParserTest;
 import com.android.loganalysis.parser.CompactMemInfoParserTest;
 import com.android.loganalysis.parser.CpuInfoParserTest;
@@ -125,7 +124,6 @@ import org.junit.runners.Suite.SuiteClasses;
     BatteryStatsDetailedInfoParserTest.class,
     BatteryStatsSummaryInfoParserTest.class,
     BatteryUsageParserTest.class,
-    TimingsLogParserTest.class,
     BugreportParserTest.class,
     CompactMemInfoParserTest.class,
     CpuInfoParserTest.class,

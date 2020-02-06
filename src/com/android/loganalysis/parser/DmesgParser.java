@@ -215,8 +215,7 @@ public class DmesgParser implements IParser {
         if((match = matches(WAIT_FOR_PROPERTY_INFO, line)) != null) {
             DmesgStageInfoItem stageInfoItem = new DmesgStageInfoItem();
             stageInfoItem.setStageName(String.format("%s_%s", INIT, match.group(STAGE)));
-            stageInfoItem.setDuration((long) (Double.parseDouble(
-                    match.group(DURATION))));
+            stageInfoItem.setDuration((long) Double.parseDouble(match.group(DURATION)));
             mDmesgItem.addStageInfoItem(stageInfoItem);
             return true;
         }
